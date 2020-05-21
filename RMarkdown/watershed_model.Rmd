@@ -1,6 +1,6 @@
 ---
 title: "watershed_model"
-author: "Bridget Gibbons"
+author: "Bridget Gibbons, Claire Madden, Lydia Bleifuss"
 date: "5/21/2020"
 output: html_document
 ---
@@ -8,4 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+
+
+
 
