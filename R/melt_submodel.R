@@ -13,7 +13,7 @@
 
 # we could also run sensitivity analysis on this mf term, could be interesting to see how much the whole deal changes based on that
 
-melt = function(mf, temp) # think we will need to add a time/day component?
+melt = function(mf, temp) # think we will need to add a time/day component and SWE but im not sure where/how?
   {
   if(temp < 0)
     return(melt = 0)
