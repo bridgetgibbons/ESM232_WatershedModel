@@ -1,0 +1,239 @@
+---
+title: "uses_snotel_data"
+author: "Lydia Bleifuss"
+date: "5/23/2020"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r Packages, echo = FALSE}
+#USGS
+library(dataRetrieval)
+
+#SNOTEL
+library(RNRCS)
+
+#Other 
+library(tidyverse)
+library(ggplot2)
+library(leaflet)
+library(dplyr)
+library(maps)
+library(lubridate)
+library(janitor)
+library(tsibble)
+library(snakecase)
+library(stringr)
+library(paletteer)
+library(feasts)
+library(sf)
+library(ggmap)
+library(tmap)
+library(rgdal)
+library(here)
+library(kableExtra)
+library(inlmisc)
+library(ggrepel)
+library(gghighlight)
+
+#Spatial Clipping 
+library(USAboundaries) # Download shape files
+library(USAboundariesData)
+```
+
+
+```{r Upper San Juan USGS AVAILABLE, echo = FALSE }
+
+#Get to know what data is available in the watershed
+
+sj_available_data <- whatNWISdata(huc = '14080101') #HUC 8 for Upper San Juan 
+
+comment(sj_available_data) #defines all column heading included in teh dataset 
+
+#Pull discharge sites
+
+sj_dis_sites <- sj_available_data %>% 
+  #filter(site_tp_cd == "ST") %>%  #ST for stream
+  filter(parm_cd == "00060") %>% #param code for Discharge, mean daily (cfs)
+  mutate(guage_type = "Streamflow") %>% 
+  distinct(site_no, .keep_all = TRUE)
+
+
+#Exploring options for temp: 
+
+temp_codes <- parameterCdFile[grep("temp", parameterCdFile$parameter_nm, ignore.case = TRUE),] 
+#pulling all params that have to do with temp
+
+nrow(temp_codes) #There are 94 different params for temp...
+unique(temp_codes$parameter_units) #what are the units?
+
+#Pull Temp Sites
+
+#Water
+
+sj_water_temp_sites <- sj_available_data %>% 
+  filter(parm_cd == "00010") %>% #param code for Temperature, water, degrees C
+  mutate(guage_type = "Stream_Temp_C") %>% 
+  filter(count_nu > 9) %>% 
+  distinct(site_no, .keep_all = TRUE) %>% 
+  st_as_sf(coords = c("dec_long_va",
+                      "dec_lat_va"), 
+           crs = 4269)
+
+#Ambiant
+
+sj_air_temp_sites <- sj_available_data %>% 
+  filter(parm_cd == "00020") %>% #param code for Temperature, air, degrees C
+  mutate(guage_type = "Air_Temp_C") %>% 
+  filter(count_nu > 9) %>% 
+  distinct(site_no, .keep_all = TRUE) %>% 
+  st_as_sf(coords = c("dec_long_va",
+                      "dec_lat_va"), 
+           crs = 4269)
+
+```
+
+```{r}
+#Checking out SNOTEL Data
+
+meta_snotel <- grabNRCS.meta(ntwrks = "SNTL", cnvrt.elev = FALSE) 
+
+meta_snotel_df <- as.data.frame(meta_snotel[['SNTL']]) %>% 
+ mutate(long = as.character(longitude)) %>% #needed to go to character first then numberic, not sure why but it was being weird 
+  mutate(long = as.numeric(long)) %>% 
+   mutate(lat = as.character(latitude)) %>% 
+  mutate(lat = as.numeric(lat)) %>% 
+  st_as_sf(coords = c("long",
+                      "lat"), 
+           crs = 4269)
+
+#Read in USJ HUC to clip SNOTEL sites
+
+USJ_HUC8<- read_sf(dsn = "USJ HUC 8",
+                 layer = "usj_huc_8") %>% 
+              st_transform(crs = 4269)
+
+#Clip the SNOTEL sites to USJ 
+
+usj_snotel <- st_intersection(USJ_HUC8, meta_snotel_df) #only two! 
+
+```
+
+```{r}
+#Map it to see which temp and streamflow gauges work with the SNOTEL sites
+
+usj_snow_map <- ggplot() +
+  geom_sf(data = usj_snotel,
+          colour = "forestgreen", 
+           size = 2,
+           alpha = 0.5)+
+  geom_sf(data = USJ_HUC8,
+          fill = NA,
+          colour = "black") +
+  theme_classic()
+
+usj_snow_map
+
+
+usj_stream_map <- ggplot() +
+    geom_sf(data = sj_water_temp_sites,
+          colour = "sienna", 
+           size = 2,
+           alpha = 0.5)+
+  geom_sf(data = USJ_HUC8,
+          fill = NA,
+          colour = "black") +
+  theme_classic()
+
+usj_stream_map
+
+
+usj_air_map <- ggplot() +
+  geom_sf(data = sj_air_temp_sites,
+          colour = "cornflowerblue", 
+           size = 2,
+           alpha = 0.5)+
+  geom_sf(data = USJ_HUC8,
+          fill = NA,
+          colour = "black") +
+  theme_classic()
+
+usj_air_map
+```
+
+```{r}
+tmap_mode("view") #Set so the map will be interactive.
+
+usj_huc8_map <- tm_basemap("Esri.WorldImagery") + #Add a basemap explored previously in mapview.
+    tm_layout("Upper San Juan Gauges") +
+  tm_shape(USJ_HUC8) +
+  tm_fill("NAME",
+          col = "sienna2",
+          legend.show = FALSE,
+          alpha = 0.4,
+          id = "NAME") +
+    tm_shape(sj_water_temp_sites)+
+  tm_dots(col = "cornflowerblue",
+          size = 0.1,
+          id = "station_nm",
+          alpha = 0.8) +
+    tm_shape(sj_air_temp_sites)+
+  tm_dots(col = "grey",
+          size = 0.1,
+          id = "station_nm",
+          alpha = 0.8) +
+      tm_shape(usj_snotel)+
+  tm_dots(col = "forestgreen",
+          size = 0.1,
+          id = "station_name",
+          alpha = 0.8)
+
+usj_huc8_map
+
+```
+
+
+```{r}
+#Data Pull 
+#Upper West Fork
+
+
+#Snotel: Vallecito
+
+vallecito_snotel <- grabNRCS.data(network = "SNTL", 
+                            site_id = 843, 
+                            timescale = "daily", 
+                            DayBgn = "1990-10-01", #what start date do we want? 
+                            DayEnd = "2020-09-30") %>% 
+  select(Date, Snow.Water.Equivalent..in..Start.of.Day.Values) %>% 
+  rename(Snow_Water_Equivalent = Snow.Water.Equivalent..in..Start.of.Day.Values) %>% 
+  mutate(date = as.Date.character(Date)) 
+
+
+#USGS Stream & Temp: VALLECITO CREEK NEAR BAYFIELD, CO. 
+
+usgs_stream_temp <- readNWISdata(siteNumbers = "09352900",
+                     parameterCd = "00010",
+                     startDate = "1990-10-01",
+                     endDate = "2020-09-30") %>% 
+  renameNWISColumns()
+
+usgs_stream_dis <- readNWISdata(siteNumbers = "09352900",
+                     parameterCd = "00060",
+                     startDate = "1990-10-01",
+                     endDate = "2020-09-30") %>% 
+  renameNWISColumns() 
+
+usgs_air_temp <- readNWISdata(siteNumbers = "09352900",
+                     parameterCd = "00020",
+                     startDate = "1990-10-01",
+                     endDate = "2020-09-30") %>% 
+  renameNWISColumns()
+
+
+```
+
