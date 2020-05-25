@@ -1,12 +1,12 @@
 # Bathtub model
 
 
-# melt = flow rate in
+# flow = flow rate in (returned from melt model)
 # capacity = capacity of the reservoir (129,700 af) 
 # storage = current volume of water in reservoir (previous day storage + melt - discharge - evap)
-# k = drainage rate
+# k = drainage rate (cfs?)
 # evap = average daily evaporation (constant at 0.1 in/day)
-# discharge = k*storage  ?????
+# discharge = k*86400 (daily discharge = discharge rate * seconds in a day)  ?????
 
 
 # reservoir that is going to be our 'bathtub' is Vallecito Reservoir
@@ -18,29 +18,29 @@
 
 
 # we are probably going to need a starting storage value - could be a random choice that is adjustable in the model
-# start with 100,000 af
+# start with 100,000 af?
 
 
-outflow = function(melt, storage, k)
+outflow = function(flow, storage, k)
 {
   
   # rethinking this and wondering if we should have a constant k value not dependent on storage and then run sensitivity on that for #simplicity
+  # 
+  # if(storage < 0.3*capacity)
+  #   return(k = 0.1) 
+  # 
+  # if(0.3*capacity < storage < 0.6*capacity)
+  #   return(k = 0.2)
+  # 
+  # if(storage > 0.6*capacity)
+  #   return(k = 0.3)
+  # 
   
-  if(storage < 0.3*capacity)
-    return(k = 0.1) 
-  
-  if(0.3*capacity < storage < 0.6*capacity)
-    return(k = 0.2)
-  
-  if(storage > 0.6*capacity)
-    return(k = 0.3)
   
   
+  storage = storage[.I-1] + flow - evap - k*storage #not sure if this will work but that notation should pull from the previous row value
   
-  
-  storage = storage[.I-1] + melt - evap - k*storage
-  
-  discharge = storage*k
+  discharge = k
   
   
   

@@ -32,6 +32,8 @@ melt = function(mf, temp) # think we will need to add a time/day component and S
   if(temp > 0)
     return(melt_factor = mf*temp)
   
+  if(SWE = 0)
+    return(NA)
   
   tot_SWE = 464000*(SWE/12) # get total water equivalent for the headwaters area in acrefeet
   
