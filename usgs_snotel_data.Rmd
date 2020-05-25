@@ -238,7 +238,7 @@ snotel_clean <- snotel_vallecito_temp_swe %>%
   mutate(cumulative_max_c_monthly = cumsum(Daily_Max_Temp_C)) %>% 
   ungroup() %>%
   group_by(Snow_Water_Equivalent_in) %>%
-    mutate(swe_diff = (Snow_Water_Equivalent_in - lag(Snow_Water_Equivalent_in))) %>% #column for change in SWE
+    mutate(swe_diff = (Snow_Water_Equivalent_in - lag(Snow_Water_Equivalent_in))) %>% #column for change in SWE (CAN"T GET THIS TO WORK UGHHHHHHH)
   filter(!cumulative_max_c_monthly == "27.2244") %>%  #getting rid of first row because of NA
   group_by(year) %>% 
   group_by(month) %>% 
