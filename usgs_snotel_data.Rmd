@@ -240,7 +240,6 @@ snotel_clean <- snotel_vallecito_temp_swe %>%
 
 SiteNumbers <- "09354500"
 parameterCd <- c("00010","00060","00020")  # Temperature and discharge
-#statCd <- c("00001","00003")  # Mean and maximum
 startDate <- "1990-10-01"
 endDate <- "2000-09-30"
 
