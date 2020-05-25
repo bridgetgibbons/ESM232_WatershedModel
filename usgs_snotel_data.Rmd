@@ -203,19 +203,6 @@ usj_huc8_map
 
 
 #MELT SUBMODEL DATA PULL 
-#SWE: Vallecito (843)
-
-snotel_vallecito_swe <- grabNRCS.data(network = "SNTL", 
-                            site_id = 843, 
-                            timescale = "daily", 
-                            DayBgn = "1990-10-01", #what start date do we want? 
-                            DayEnd = "2020-09-30") %>% 
-  select(Date, Snow.Water.Equivalent..in..Start.of.Day.Values) %>% 
-  rename(Snow_Water_Equivalent = Snow.Water.Equivalent..in..Start.of.Day.Values) %>% 
-  mutate(date = as.Date.character(Date))
-#column for change in SWE 
-
-
 #SWE & AMBIENT AIR: Snotel (843) 
 
 snotel_vallecito_temp_swe <- grabNRCS.data(network = "SNTL", 
@@ -246,7 +233,7 @@ snotel_clean <- snotel_vallecito_temp_swe %>%
   
 
 
-#TEMP SUBMODEL PULL 
+#TEMP SUBMODEL DATA PULL 
 
 #USGS Stream & Air Temp: LOS PINOS RIVER AT LA BOCA, CO
 #USGS Flow at same guage if nice for graphing later 
