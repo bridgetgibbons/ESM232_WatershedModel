@@ -13,6 +13,8 @@
 
 # we could also run sensitivity analysis on this mf term, could be interesting to see how much the whole deal changes based on that
 
+#SWE in inches at start of day 
+
 melt = function(mf, temp) # think we will need to add a time/day component and SWE but im not sure where/how?
   {
   if(temp < 0)
@@ -21,5 +23,7 @@ melt = function(mf, temp) # think we will need to add a time/day component and S
   if(temp > 0)
     return(melt = mf*temp)
 }
+
+#error checking, if no SWE or not enough, error 
 
 

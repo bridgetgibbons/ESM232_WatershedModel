@@ -211,10 +211,23 @@ vallecito_snotel <- grabNRCS.data(network = "SNTL",
                             DayEnd = "2020-09-30") %>% 
   select(Date, Snow.Water.Equivalent..in..Start.of.Day.Values) %>% 
   rename(Snow_Water_Equivalent = Snow.Water.Equivalent..in..Start.of.Day.Values) %>% 
-  mutate(date = as.Date.character(Date)) 
+  mutate(date = as.Date.character(Date)) %>% 
+  mutate(swe_change = )
+
+#column for change in SWE 
+#runnign sum of SWE
+#running sum of temp
+#running sum of calculated "melt" from melt submodel 
 
 
 #USGS Stream & Temp: VALLECITO CREEK NEAR BAYFIELD, CO. 
+
+
+#get ambient air and water temp data from LOS PINOS RIVER AT LA BOCA, CO. 
+#stream cfs if there 
+
+#swe from 843
+#amient air from VALLECITO CREEK NEAR BAYFIELD, CO. 
 
 usgs_stream_temp <- readNWISdata(siteNumbers = "09352900",
                      parameterCd = "00010",
