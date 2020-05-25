@@ -56,11 +56,11 @@ comment(sj_available_data) #defines all column heading included in teh dataset
 
 #Pull discharge sites
 
-sj_dis_sites <- sj_available_data %>% 
-  #filter(site_tp_cd == "ST") %>%  #ST for stream
-  filter(parm_cd == "00060") %>% #param code for Discharge, mean daily (cfs)
-  mutate(guage_type = "Streamflow") %>% 
-  distinct(site_no, .keep_all = TRUE)
+# sj_dis_sites <- sj_available_data %>% 
+#   #filter(site_tp_cd == "ST") %>%  #ST for stream
+#   filter(parm_cd == "00060") %>% #param code for Discharge, mean daily (cfs)
+#   mutate(guage_type = "Streamflow") %>% 
+#   distinct(site_no, .keep_all = TRUE)
 
 
 #Exploring options for temp: 
@@ -69,7 +69,7 @@ temp_codes <- parameterCdFile[grep("temp", parameterCdFile$parameter_nm, ignore.
 #pulling all params that have to do with temp
 
 nrow(temp_codes) #There are 94 different params for temp...
-unique(temp_codes$parameter_units) #what are the units?
+unique(temp_codes$parameter_units) 
 
 #Pull Temp Sites
 
@@ -197,56 +197,80 @@ usj_huc8_map
 ```
 
 
-```{r}
+```{r} 
 #Data Pull 
 #Upper West Fork
 
 
-#Snotel: Vallecito
+#MELT SUBMODEL DATA PULL 
+#SWE: Vallecito (843)
 
-vallecito_snotel <- grabNRCS.data(network = "SNTL", 
+snotel_vallecito_swe <- grabNRCS.data(network = "SNTL", 
                             site_id = 843, 
                             timescale = "daily", 
                             DayBgn = "1990-10-01", #what start date do we want? 
                             DayEnd = "2020-09-30") %>% 
   select(Date, Snow.Water.Equivalent..in..Start.of.Day.Values) %>% 
   rename(Snow_Water_Equivalent = Snow.Water.Equivalent..in..Start.of.Day.Values) %>% 
-  mutate(date = as.Date.character(Date)) %>% 
-  mutate(swe_change = )
-
+  mutate(date = as.Date.character(Date))
 #column for change in SWE 
-#runnign sum of SWE
-#running sum of temp
-#running sum of calculated "melt" from melt submodel 
 
 
-#USGS Stream & Temp: VALLECITO CREEK NEAR BAYFIELD, CO. 
+#SWE & AMBIENT AIR: Snotel (843) 
+
+snotel_vallecito_temp_swe <- grabNRCS.data(network = "SNTL", 
+                            site_id = 843,
+                            timescale = "daily", 
+                            DayBgn = "1990-10-01", #what start date do we want? 
+                            DayEnd = "2000-09-30") %>% 
+  select(Date, Snow.Water.Equivalent..in..Start.of.Day.Values, Air.Temperature.Average..degF., Air.Temperature.Maximum..degF.) %>% 
+  rename(Snow_Water_Equivalent_in = Snow.Water.Equivalent..in..Start.of.Day.Values, Daily_Ave_Temp_F = Air.Temperature.Average..degF., Daily_Max_Temp_F = Air.Temperature.Maximum..degF.)%>% 
+  mutate(Date = as.Date.character(Date)) %>% 
+  mutate(Daily_Ave_Temp_C = (Daily_Ave_Temp_F*0.5556)) %>% 
+  mutate(Daily_Max_Temp_C = (Daily_Max_Temp_F*0.5556))
+
+snotel_clean <- snotel_vallecito_temp_swe %>% 
+  mutate(year = lubridate::year(Date)) %>% 
+  mutate(month = lubridate::month(Date)) %>% 
+  group_by(year) %>% 
+  group_by(month) %>% 
+  mutate(cumulative_ave_c_monthy = cumsum(Daily_Ave_Temp_C)) %>% #cummualative by ave daily (for each month)
+  mutate(cumulative_max_c_monthly = cumsum(Daily_Max_Temp_C)) %>% 
+  ungroup() %>%
+  group_by(Snow_Water_Equivalent_in) %>%
+    mutate(swe_diff = (Snow_Water_Equivalent_in - lag(Snow_Water_Equivalent_in))) %>% #column for change in SWE
+  filter(!cumulative_max_c_monthly == "27.2244") %>%  #getting rid of first row because of NA
+  group_by(year) %>% 
+  group_by(month) %>% 
+  mutate(cumulative_swe_diff_monthly = cumsum(swe_diff))
+  
 
 
-#get ambient air and water temp data from LOS PINOS RIVER AT LA BOCA, CO. 
-#stream cfs if there 
+#TEMP SUBMODEL PULL 
 
-#swe from 843
-#amient air from VALLECITO CREEK NEAR BAYFIELD, CO. 
+#USGS Stream & Air Temp: LOS PINOS RIVER AT LA BOCA, CO
+#USGS Flow at same guage if nice for graphing later 
 
-usgs_stream_temp <- readNWISdata(siteNumbers = "09352900",
-                     parameterCd = "00010",
-                     startDate = "1990-10-01",
-                     endDate = "2020-09-30") %>% 
+SiteNumbers <- "09354500"
+parameterCd <- c("00010","00060","00020")  # Temperature and discharge
+#statCd <- c("00001","00003")  # Mean and maximum
+startDate <- "1990-10-01"
+endDate <- "2000-09-30"
+
+data_stream_temp <- readNWISdata(stateCd="CO", parameterCd="00010") %>% 
   renameNWISColumns()
 
-usgs_stream_dis <- readNWISdata(siteNumbers = "09352900",
-                     parameterCd = "00060",
-                     startDate = "1990-10-01",
-                     endDate = "2020-09-30") %>% 
-  renameNWISColumns() 
+data_stream_usj <- inner_join(sj_water_temp_sites, data_stream_temp, by = "site_no") #wow one measurement, great, why does it say there are over 2,000 WHERE ARE THEY 
 
-usgs_air_temp <- readNWISdata(siteNumbers = "09352900",
-                     parameterCd = "00020",
-                     startDate = "1990-10-01",
-                     endDate = "2020-09-30") %>% 
-  renameNWISColumns()
 
+data_air_temp <- readNWISdata(stateCd="CO", parameterCd="00020")
+
+
+pinos_data <- readNWISdata(siteNumber=siteNumber, 
+                                               parameterCd=parameterCd, 
+                                               startDate=startDate, 
+                                               endDate=endDate) %>% 
+  renameNWISColumns() #not pulling the temp data, tried a bunch of different methods, not sure why
 
 ```
 
