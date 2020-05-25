@@ -1,5 +1,8 @@
 # Melt submodel
 
+# https://directives.sc.egov.usda.gov/OpenNonWebContent.aspx?content=17753.wba
+# see page 11 - same method as described below
+
 # http://snobear.colorado.edu/Markw//IntroHydro/09/snow/snow_hydro_modeling.htm
 # M = Mf (Ta - To)
 # M = snowmelt (mm/day)
@@ -13,17 +16,30 @@
 
 # we could also run sensitivity analysis on this mf term, could be interesting to see how much the whole deal changes based on that
 
+
+# headwaters area = 72.5 miles^2 , 46400 acres
+# approx SWE feeding bathtub = headwaters_area*SWE
+
 #SWE in inches at start of day 
 
 #Drainage of 72.5 square miles
 
 melt = function(mf, temp) # think we will need to add a time/day component and SWE but im not sure where/how?
   {
-  if(temp < 0)
-    return(melt = 0)
+  if(temp <= 0)
+    return(melt_factor = 0)
   
   if(temp > 0)
-    return(melt = mf*temp)
+    return(melt_factor = mf*temp)
+  
+  
+  tot_SWE = 464000*(SWE/12) # get total water equivalent for the headwaters area in acrefeet
+  
+  
+  flow = melt_factor*tot_SWE
+  
+  return(flow)
+  
 }
 
 #error checking, if no SWE or not enough, error 
