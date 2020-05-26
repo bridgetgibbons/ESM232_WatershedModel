@@ -46,4 +46,6 @@ melt = function(mf, temp) # think we will need to add a time/day component and S
 
 #error checking, if no SWE or not enough, error 
 
+# i think this function needs either a for loop or to use mapply - if the input is daily temperature and SWE data, would we get a value of flow per day? I'm thinking we may want it to run line by line down a data frame, and then it can calculate the daily flow rate, which I think is what we want to feed into the bathtub
+
 
