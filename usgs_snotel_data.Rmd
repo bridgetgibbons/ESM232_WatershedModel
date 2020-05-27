@@ -220,7 +220,6 @@ snotel_clean <- snotel_vallecito_temp_swe %>%
   mutate(year = lubridate::year(Date)) %>% 
   mutate(month = lubridate::month(Date)) %>% 
   group_by(year) %>% 
-  group_by(month) %>% 
   mutate(cumulative_ave_c_monthy = cumsum(Daily_Ave_Temp_C)) %>% #cummualative by ave daily (for each month)
   mutate(cumulative_max_c_monthly = cumsum(Daily_Max_Temp_C)) 
 
@@ -229,9 +228,8 @@ snotel_final_swe <- snotel_clean %>%
   mutate(diff_swe= (Snow_Water_Equivalent_in) - lag(Snow_Water_Equivalent_in)) %>% 
   drop_na(diff_swe) %>% #droppign first row 
     group_by(year) %>% 
-  group_by(month) %>% 
-  mutate(cummulative_swe_monthly = cumsum(diff_swe)) %>% 
-  select(Date, cumulative_max_c_monthly, cumulative_ave_c_monthy, cummulative_swe_monthly)
+  mutate(cummulative_swe_yearly_in = cumsum(diff_swe)) %>% 
+  select(Date, Daily_Ave_Temp_C,cummulative_swe_yearly_in)
   
 
 
