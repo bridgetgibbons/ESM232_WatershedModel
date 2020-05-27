@@ -26,4 +26,5 @@ water_temp = function(temp_a, temp_w, time){
 
 
 
+#can we build water volume into c? Maybe c changes with volume, smaller c means faster/more change in temp, larger c means less temp change 
 

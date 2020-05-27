@@ -1,15 +1,144 @@
 ---
-title: "watershed_model"
+title: "Hydology Model: Watershed Snowpack Melt, Storage, and Streamflow Temperature "
 author: "Bridget Gibbons, Claire Madden, Lydia Bleifuss"
-date: "5/21/2020"
+date: "6/10/2020"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      error = FALSE)
+```
+
+Requirements:
+
+-Provice some rationale for why this is an important question to answer/management area
+
+- Conceptual model 
+
+- Perform sensitivity analysis for at least two parameters
+- At least one sub-model should include a dynmaic ODE model
+- Model would involve 3 submodels
+-Visualize results in 2 different ways (graphs) 
+- Write up results (explain how the model answers your original question/addresses your management area, explain importance of uncertainty in the results and any implications of the results for env. management) 
+
+
+- SUBMIT! 
+- model code (include .Rmd and tack on BRIEF write up at the end)
+
+#####1] Introductory Summary
+
+
+Some writing here, one sentence. 
+
+![**Conceptual Model (obviously we will put a final one in later**](Stream_Snow_Conceptual_Model.jpg)
+
+
+**1.** Read in packages. 
+```{r}
+library(tidyverse)
+library(janitor)
+library(here)
+library(readxl)
+library(ggplot2)
+library(paletteer)
+```
+
+**2.** Pull in snowpack melt data.
+```{r}
+#MELT SUBMODEL DATA PULL 
+#SWE & AMBIENT AIR: Snotel (843) 
+snotel_vallecito_temp_swe <- grabNRCS.data(network = "SNTL", 
+                            site_id = 843,
+                            timescale = "daily", 
+                            DayBgn = "1990-10-01", #what start date do we want? 
+                            DayEnd = "2000-09-30") %>% 
+  select(Date, Snow.Water.Equivalent..in..Start.of.Day.Values, Air.Temperature.Average..degF., Air.Temperature.Maximum..degF.) %>% 
+  rename(Snow_Water_Equivalent_in = Snow.Water.Equivalent..in..Start.of.Day.Values, Daily_Ave_Temp_F = Air.Temperature.Average..degF., Daily_Max_Temp_F = Air.Temperature.Maximum..degF.)%>% 
+  mutate(Date = as.Date.character(Date)) %>% 
+  mutate(Daily_Ave_Temp_C = (Daily_Ave_Temp_F*0.5556)) %>% 
+  mutate(Daily_Max_Temp_C = (Daily_Max_Temp_F*0.5556))
+
+
+snotel_clean <- snotel_vallecito_temp_swe %>% 
+  mutate(year = lubridate::year(Date)) %>% 
+  mutate(month = lubridate::month(Date))
+
+
+snotel_final_swe <- snotel_clean %>% 
+  mutate(diff_swe= (Snow_Water_Equivalent_in) - lag(Snow_Water_Equivalent_in)) %>% 
+  drop_na(diff_swe) %>% #droppign first row 
+    group_by(year) %>% 
+  mutate(cummulative_swe_yearly_in = cumsum(diff_swe)) %>% 
+  select(Date, Daily_Ave_Temp_C,cummulative_swe_yearly_in)
 ```
 
 
+**3.** Read in snowpack melt model.
+```{r}
+source("../R/power_gen.R") #need to put in pathway 
+melt_submodel.R
+```
+
+**4.** Run melt_submodel with SNOTEL data and apply ODE (??).
+```{r}
+
+```
 
 
+**5.** Perform sensitivity analysis on melt factor.
+```{r}
 
+```
+
+**6.** Graph results.
+```{r}
+
+```
+
+
+**7.** Read in bathtub/watershed storage model.
+```{r}
+source("../R/power_gen.R") #need to put in pathway 
+bathtub_submodel.R
+```
+
+**8.** Run bathtub_submodel with results from snowpack melt.
+```{r}
+
+```
+
+
+**9.** Perform sensitivity analysis on K.
+```{r}
+
+```
+
+**10.** Graph results.
+```{r}
+
+```
+
+**11.** Read in temperature data.
+```{r}
+ambient <- read_csv(here::here("ESM232_WatershedModel", "Data", "ambient_air_tempmodel.csv"))
+
+water <- read_csv(here::here("ESM232_WatershedModel", "Data", "water_temp_tempmodel.csv"))
+```
+
+**12.** Read in temperature model.
+```{r}
+source("../R/power_gen.R") #need to put in pathway 
+temperature_submodel.R
+```
+
+**13.** Run temperature model with temperature data.
+```{r}
+
+```
+
+**14.** Graph results.
+```{r}
+
+```

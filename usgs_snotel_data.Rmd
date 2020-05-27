@@ -136,7 +136,7 @@ usj_snow_map <- ggplot() +
           colour = "black") +
   theme_classic()
 
-usj_snow_map
+# usj_snow_map
 
 
 usj_stream_map <- ggplot() +
@@ -149,7 +149,7 @@ usj_stream_map <- ggplot() +
           colour = "black") +
   theme_classic()
 
-usj_stream_map
+# usj_stream_map
 
 
 usj_air_map <- ggplot() +
@@ -162,7 +162,7 @@ usj_air_map <- ggplot() +
           colour = "black") +
   theme_classic()
 
-usj_air_map
+# usj_air_map
 ```
 
 ```{r}
@@ -222,18 +222,20 @@ snotel_clean <- snotel_vallecito_temp_swe %>%
   group_by(year) %>% 
   group_by(month) %>% 
   mutate(cumulative_ave_c_monthy = cumsum(Daily_Ave_Temp_C)) %>% #cummualative by ave daily (for each month)
-  mutate(cumulative_max_c_monthly = cumsum(Daily_Max_Temp_C)) %>% 
-  ungroup() %>%
-  group_by(Snow_Water_Equivalent_in) %>%
-    mutate(swe_diff = (Snow_Water_Equivalent_in - lag(Snow_Water_Equivalent_in))) %>% #column for change in SWE (CAN"T GET THIS TO WORK UGHHHHHHH)
-  filter(!cumulative_max_c_monthly == "27.2244") %>%  #getting rid of first row because of NA
-  group_by(year) %>% 
+  mutate(cumulative_max_c_monthly = cumsum(Daily_Max_Temp_C)) 
+
+
+snotel_final_swe <- snotel_clean %>% 
+  mutate(diff_swe= (Snow_Water_Equivalent_in) - lag(Snow_Water_Equivalent_in)) %>% 
+  drop_na(diff_swe) %>% #droppign first row 
+    group_by(year) %>% 
   group_by(month) %>% 
-  mutate(cumulative_swe_diff_monthly = cumsum(swe_diff))
+  mutate(cummulative_swe_monthly = cumsum(diff_swe)) %>% 
+  select(Date, cumulative_max_c_monthly, cumulative_ave_c_monthy, cummulative_swe_monthly)
   
 
 
-#TEMP SUBMODEL DATA PULL 
+#TEMP SUBMODEL DATA PULL (NOT WORKING)
 
 #USGS Stream & Air Temp: LOS PINOS RIVER AT LA BOCA, CO
 #USGS Flow at same guage if nice for graphing later 

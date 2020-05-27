@@ -40,7 +40,7 @@ outflow = function(flow, storage, k)
   
   storage = storage[.I-1] + flow - evap - k*storage #not sure if this will work but that notation should pull from the previous row value
   
-  discharge = k
+  discharge = k #AF/day (find average cfs for streamflow in that guage)
   
   
   
