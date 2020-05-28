@@ -24,7 +24,7 @@
 
 #Drainage of 72.5 square miles
 
-melt = function(mf, temp) # think we will need to add a time/day component and SWE but im not sure where/how?
+melt = function(mf, temp, SWE) # think we will need to add a time/day component and SWE but im not sure where/how?
   {
   if(temp <= 0)
     return(melt_factor = 0)

@@ -36,11 +36,21 @@ outflow = function(flow, storage, k)
   #   return(k = 0.3)
   # 
   
+  # make sure if storage < 0, evap and drainage are 0
   
+  # wrapper function that updates storage and melt each day
   
-  storage = storage[.I-1] + flow - evap - k*storage #not sure if this will work but that notation should pull from the previous row value
+  # make sure all units match up in whatever unit we choose
   
-  discharge = k #AF/day (find average cfs for streamflow in that guage)
+  # evap = surface area of reservoir * evap rate
+  
+  # need to have some initial storage to start from
+  
+  new_storage = storage[.I-1] + flow - evap - k*storage #not sure if this will work but that notation should pull from the previous row value
+  
+  # right now we are assuming reservoir has infinite capacity - if storage > storage capacity, add difference into discharge 
+  
+  discharge = k*storage #AF/day (find average cfs for streamflow in that guage)
   
   
   
