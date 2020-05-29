@@ -37,7 +37,8 @@ melt = function(mf = 0.0131234, SWE, input_year) # think we will need to add a t
   swe_df <- SWE %>% 
     filter(year == input_year) 
   
-  output_df <- data.frame(year = swe_df$year,
+  output_df <- data.frame(date = swe_df$Date,
+                          year = swe_df$year,
                           month = swe_df$month, 
                           day = swe_df$day,
                           temp = swe_df$temp,

@@ -84,7 +84,7 @@ snotel_final_swe <- snotel_clean %>%
   # mutate(cummulative_swe_yearly_in = cumsum(diff_swe)) %>% 
   # mutate(cummulative_swe_yearly_ft = (cummulative_swe_yearly_in/12)) %>% 
   # mutate(cummulative_swe_yearly_ft = ifelse(cummulative_swe_yearly_ft < 0, 0, cummulative_swe_yearly_ft)) %>% 
-  select(year, month, day, temp = Daily_Ave_Temp_C, swe_ft)
+  select(Date, year, month, day, temp = Daily_Ave_Temp_C, swe_ft)
 ```
 
 
@@ -95,15 +95,15 @@ source("../R/melt_submodel.R")
 
 ```
 
-**4.** Run melt_submodel with SNOTEL data and apply ODE (??).
+**4.** Run melt_submodel with SNOTEL data.
 ```{r}
 
-melt_df <- as.data.frame(melt(SWE = snotel_final_swe, input_year = 1990, mf = 0.0131234))
+melt_df <- as.data.frame(melt(SWE = snotel_final_swe, input_year = 1999, mf = 0.0131234))
 
 ```
 
 
-**5.** Perform sensitivity analysis on melt factor.
+**5.** Perform sensitivity analysis on melt factor (mf).
 ```{r}
 
 ```
@@ -111,17 +111,28 @@ melt_df <- as.data.frame(melt(SWE = snotel_final_swe, input_year = 1990, mf = 0.
 **6.** Graph results.
 ```{r}
 
+melt_plot <- ggplot(data = melt_df) +
+  geom_line(aes(x = date, y = flow))
+  
+melt_plot
+
 ```
 
 
 **7.** Read in bathtub/watershed storage model.
 ```{r}
-source("../R/power_gen.R") #need to put in pathway 
-bathtub_submodel.R
+
+source("../R/bathtub_submodel.R")
+
+
 ```
 
-**8.** Run bathtub_submodel with results from snowpack melt.
+**8.** Run bathtub_submodel with results from snowpack melt. ODE (if time allows) 
 ```{r}
+
+outflow(input_df = melt_df, storage_initial = 70555, k = 0.001, evap = 22.66)
+
+#outflow_df <- as.data.frame(outflow(input_df = melt_df, storage_initial = 70555, k = 0.001, evap = 22.66))
 
 ```
 
