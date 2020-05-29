@@ -43,6 +43,12 @@ library(here)
 library(readxl)
 library(ggplot2)
 library(paletteer)
+
+#USGS
+library(dataRetrieval)
+
+#SNOTEL
+library(RNRCS)
 ```
 
 **2.** Pull in snowpack melt data.
@@ -63,26 +69,36 @@ snotel_vallecito_temp_swe <- grabNRCS.data(network = "SNTL",
 
 snotel_clean <- snotel_vallecito_temp_swe %>% 
   mutate(year = lubridate::year(Date)) %>% 
-  mutate(month = lubridate::month(Date))
+  mutate(year = as.numeric(year)) %>% 
+  mutate(month = lubridate::month(Date)) %>% 
+  mutate(month = as.numeric(month)) %>% 
+  mutate(day = lubridate::day(Date)) %>% 
+mutate(day = as.numeric(day))
 
 
 snotel_final_swe <- snotel_clean %>% 
-  mutate(diff_swe= (Snow_Water_Equivalent_in) - lag(Snow_Water_Equivalent_in)) %>% 
-  drop_na(diff_swe) %>% #droppign first row 
-    group_by(year) %>% 
-  mutate(cummulative_swe_yearly_in = cumsum(diff_swe)) %>% 
-  select(Date, Daily_Ave_Temp_C,cummulative_swe_yearly_in)
+  mutate(swe_ft = (Snow_Water_Equivalent_in/12)) %>% 
+  # mutate(diff_swe= (Snow_Water_Equivalent_in) - lag(Snow_Water_Equivalent_in)) %>% 
+  # drop_na(diff_swe) %>% #droppign first row 
+  #   group_by(year) %>% 
+  # mutate(cummulative_swe_yearly_in = cumsum(diff_swe)) %>% 
+  # mutate(cummulative_swe_yearly_ft = (cummulative_swe_yearly_in/12)) %>% 
+  # mutate(cummulative_swe_yearly_ft = ifelse(cummulative_swe_yearly_ft < 0, 0, cummulative_swe_yearly_ft)) %>% 
+  select(year, month, day, temp = Daily_Ave_Temp_C, swe_ft)
 ```
 
 
 **3.** Read in snowpack melt model.
 ```{r}
-source("../R/power_gen.R") #need to put in pathway 
-melt_submodel.R
+
+source("../R/melt_submodel.R") 
+
 ```
 
 **4.** Run melt_submodel with SNOTEL data and apply ODE (??).
 ```{r}
+
+melt_df <- as.data.frame(melt(SWE = snotel_final_swe, input_year = 1990, mf = 0.0131234))
 
 ```
 

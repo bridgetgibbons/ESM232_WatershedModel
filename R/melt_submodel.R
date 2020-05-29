@@ -24,23 +24,36 @@
 
 #Drainage of 72.5 square miles
 
-melt = function(mf, temp, SWE) # think we will need to add a time/day component and SWE but im not sure where/how?
+#mf ft/C/day
+# 1 - 7: 1 mm = 0.00328084 ft, 4mm = 0.0131234 ft, 7mm = 0.0229659 ft
+
+
+
+
+melt = function(mf = 0.0131234, SWE, input_year) # think we will need to add a time/day component and SWE but im not sure where/how?
+  
   {
-  if(temp <= 0)
-    return(melt_factor = 0)
   
-  if(temp > 0)
-    return(melt_factor = mf*temp)
+  swe_df <- SWE %>% 
+    filter(year == input_year) 
   
-  if(SWE = 0)
-    return(NA)
+  output_df <- data.frame(year = swe_df$year,
+                          month = swe_df$month, 
+                          day = swe_df$day,
+                          temp = swe_df$temp,
+                          melt_factor = NA,
+                          tot_SWE = NA,
+                          flow = NA
+                          )
   
-  tot_SWE = 464000*(SWE/12) # get total water equivalent for the headwaters area in acrefeet
+  for (i in 1: nrow(swe_df)) { 
+    output_df$melt_factor[i] = ifelse(swe_df$temp[i] < 0, 0, mf*swe_df$temp[i])
+    output_df$tot_SWE[i] = 464000*(swe_df$swe_ft[i])# get total water equivalent for the headwaters area in acrefeet
+    output_df$flow[i] = output_df$melt_factor[i]*output_df$tot_SWE[i]  
+  }
   
   
-  flow = melt_factor*tot_SWE
-  
-  return(flow)
+  return(output_df)
   
 }
 
@@ -49,3 +62,27 @@ melt = function(mf, temp, SWE) # think we will need to add a time/day component 
 # i think this function needs either a for loop or to use mapply - if the input is daily temperature and SWE data, would we get a value of flow per day? I'm thinking we may want it to run line by line down a data frame, and then it can calculate the daily flow rate, which I think is what we want to feed into the bathtub
 
 
+
+#%>% 
+# mutate(melt_factor = ifelse(temp <= 0, 0, mf*temp)) 
+
+
+
+# if(swe_df$temp <= 0){
+#   melt_factor = 0
+# }
+# 
+# else{
+#   melt_factor = mf*temp
+# }
+# 
+# if(SWE = 0){
+#   melt_factor = 0
+# }
+
+
+#ifelse(swe_df$temp[i] <= 0, 0, 
+
+# if(output_df$flow < 0){
+#   output_df$flow = 0
+# }
