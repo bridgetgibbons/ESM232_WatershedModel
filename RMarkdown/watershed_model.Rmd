@@ -43,6 +43,7 @@ library(here)
 library(readxl)
 library(ggplot2)
 library(paletteer)
+library(zoo)
 
 #USGS
 library(dataRetrieval)
@@ -59,7 +60,7 @@ snotel_vallecito_temp_swe <- grabNRCS.data(network = "SNTL",
                             site_id = 843,
                             timescale = "daily", 
                             DayBgn = "1990-10-01", #what start date do we want? 
-                            DayEnd = "2000-09-30") %>% 
+                            DayEnd = "2020-09-30") %>% 
   select(Date, Snow.Water.Equivalent..in..Start.of.Day.Values, Air.Temperature.Average..degF., Air.Temperature.Maximum..degF.) %>% 
   rename(Snow_Water_Equivalent_in = Snow.Water.Equivalent..in..Start.of.Day.Values, Daily_Ave_Temp_F = Air.Temperature.Average..degF., Daily_Max_Temp_F = Air.Temperature.Maximum..degF.)%>% 
   mutate(Date = as.Date.character(Date)) %>% 
@@ -78,13 +79,8 @@ mutate(day = as.numeric(day))
 
 snotel_final_swe <- snotel_clean %>% 
   mutate(swe_ft = (Snow_Water_Equivalent_in/12)) %>% 
-  # mutate(diff_swe= (Snow_Water_Equivalent_in) - lag(Snow_Water_Equivalent_in)) %>% 
-  # drop_na(diff_swe) %>% #droppign first row 
-  #   group_by(year) %>% 
-  # mutate(cummulative_swe_yearly_in = cumsum(diff_swe)) %>% 
-  # mutate(cummulative_swe_yearly_ft = (cummulative_swe_yearly_in/12)) %>% 
-  # mutate(cummulative_swe_yearly_ft = ifelse(cummulative_swe_yearly_ft < 0, 0, cummulative_swe_yearly_ft)) %>% 
-  select(Date, year, month, day, temp = Daily_Ave_Temp_C, swe_ft)
+  select(Date, year, month, day, temp = Daily_Ave_Temp_C, swe_ft) %>% 
+  transform(temp = ave(temp, FUN = na.approx))
 ```
 
 
@@ -98,7 +94,10 @@ source("../R/melt_submodel.R")
 **4.** Run melt_submodel with SNOTEL data.
 ```{r}
 
-melt_df <- as.data.frame(melt(SWE = snotel_final_swe, input_year = 1999, mf = 0.0131234))
+input_year = 2015
+
+melt_df <- as.data.frame(melt(SWE = snotel_final_swe, input_year = input_year, mf = 0.0131234))
+  
 
 ```
 
@@ -130,9 +129,8 @@ source("../R/bathtub_submodel.R")
 **8.** Run bathtub_submodel with results from snowpack melt. ODE (if time allows) 
 ```{r}
 
-outflow(input_df = melt_df, storage_initial = 70555, k = 0.001, evap = 22.66)
+bathtub_df <- as.data.frame(outflow(input_df = melt_df, storage_initial = 70555, k = 0.001, evap = 22.66))
 
-#outflow_df <- as.data.frame(outflow(input_df = melt_df, storage_initial = 70555, k = 0.001, evap = 22.66))
 
 ```
 
@@ -149,19 +147,30 @@ outflow(input_df = melt_df, storage_initial = 70555, k = 0.001, evap = 22.66)
 
 **11.** Read in temperature data.
 ```{r}
-ambient <- read_csv(here::here("ESM232_WatershedModel", "Data", "ambient_air_tempmodel.csv"))
+ambient <- read_csv(here::here("Data", "ambient_air_tempmodel.csv")) %>% 
+  mutate(daily_max_temp_c = as.numeric(daily_max_temp_c)) %>% 
+  transform(daily_max_temp_c = ave(daily_max_temp_c, FUN = na.approx))
+  
 
-water <- read_csv(here::here("ESM232_WatershedModel", "Data", "water_temp_tempmodel.csv"))
+water <- read_csv(here::here("Data", "water_temp_tempmodel.csv")) %>% 
+  mutate(mean_water_temp_c = replace_na(mean_water_temp_c,0))
+
+
+water_2015 <- water %>% 
+  filter(year == 2015)
+
 ```
 
 **12.** Read in temperature model.
 ```{r}
-source("../R/power_gen.R") #need to put in pathway 
-temperature_submodel.R
+source("../R/temperature_submodel.R") 
+
 ```
 
 **13.** Run temperature model with temperature data.
 ```{r}
+
+water_temp <- as.data.frame(water_temp(ambient = ambient, water = water, bathtub_df = bathtub_df, input_year = input_year))
 
 ```
 
