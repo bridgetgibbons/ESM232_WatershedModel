@@ -49,7 +49,7 @@ water_temp = function(water, ambient, bathtub_df, input_year){
   }
 
 
-
+ 
 #can we build water volume into c? Maybe c changes with volume, smaller c means faster/more change in temp, larger c means less temp change 
 # 
 # 
