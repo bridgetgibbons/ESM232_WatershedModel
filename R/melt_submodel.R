@@ -53,10 +53,10 @@ melt = function(mf = 0.0131234, SWE, input_year, flow_only = TRUE) # think we wi
     output_df$flow[i] = output_df$melt_factor[i]*output_df$tot_SWE[i]  
   }
   
-  mean_flow <- mean(output_df$flow)
+  flow_only <- output_df$flow
   
   if(flow_only){
-    return(mean_flow)
+    return(flow_only)
   }
   else{
     return(output_df)
