@@ -30,7 +30,7 @@ water_temp = function(water, ambient, bathtub_df, input_year){
                         temp_w = water_df$mean_water_temp_c,
                         temp_a = air_df$daily_max_temp_c,
                         temp_calc = NA) %>% 
-    mutate(c = 0.7/(flow/mean(flow)))
+    mutate(c = ifelse(flow>(mean(flow)), 0.6, 0.8))
   
   
   for(i in 1:nrow(temp_df)){
@@ -45,9 +45,23 @@ water_temp = function(water, ambient, bathtub_df, input_year){
 
   }
   return(temp_df)
-}
+
+  }
 
 
 
 #can we build water volume into c? Maybe c changes with volume, smaller c means faster/more change in temp, larger c means less temp change 
+# 
+# 
+# mutate(c = if(flow > (mean(flow)+sd(flow))){
+#   0.6} 
+#   else{
+#     if((mean(flow)-sd(flow))<flow & flow<(mean(flow)+sd(flow))){
+#       0.7
+#     }
+#     else{
+#       0.8
+#     }
+#   }
+# )
 

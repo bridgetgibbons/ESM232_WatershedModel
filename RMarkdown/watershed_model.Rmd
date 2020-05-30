@@ -170,11 +170,18 @@ source("../R/temperature_submodel.R")
 **13.** Run temperature model with temperature data.
 ```{r}
 
-water_temp <- as.data.frame(water_temp(ambient = ambient, water = water, bathtub_df = bathtub_df, input_year = input_year))
+water_temp <- as.data.frame(water_temp(ambient = ambient, water = water, bathtub_df = bathtub_df, input_year = input_year)) %>% 
+  mutate(temp_w_change = temp_calc - temp_w)
 
 ```
 
 **14.** Graph results.
 ```{r}
 
+ggplot(data = water_temp)+
+  geom_line(aes(x = date, y = temp_a), color = "orange")+
+  geom_line(aes(x = date, y = temp_w_change), color = "blue")
+
+
+# maybe would be nice to calculate some sort of running average to visualize overall trends?
 ```
