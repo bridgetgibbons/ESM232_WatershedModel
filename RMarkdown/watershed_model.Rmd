@@ -300,7 +300,6 @@ pse::plotprcc(y)
 
 y$prcc
 
-pse::plotscatter(y, col="blue", cex=5)
 
 
 # now need to add uncertainty bounds on our estimates
