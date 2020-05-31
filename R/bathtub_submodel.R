@@ -23,7 +23,7 @@
 #evap in AF and storage_initial in AF 
 
 
-outflow = function(input_df, storage_initial = 70555, k = 0.001, evap = 22.66, outflow_only = TRUE)
+outflow = function(input_df, storage_initial = 70555, k = 0.01, evap = 22.66, outflow_only = TRUE)
   
 {
   
@@ -33,7 +33,10 @@ outflow = function(input_df, storage_initial = 70555, k = 0.001, evap = 22.66, o
                            day = input_df$day,
                            flow_in = input_df$flow,
                            flow_out = k*storage_initial,
-                           storage_new = storage_initial) 
+                           storage_new = storage_initial,
+                           capacity = 129700,
+                           storage_final = NA,
+                           flow_out_final = NA) 
   
 # could take out the for loop and turn this into ode
   
@@ -43,6 +46,18 @@ outflow = function(input_df, storage_initial = 70555, k = 0.001, evap = 22.66, o
     
     bathtub_df$storage_new[i] = bathtub_df$storage_new[i-1] - evap + bathtub_df$flow_in[i-1] - bathtub_df$flow_out[i-1]
     bathtub_df$flow_out[i] = bathtub_df$storage_new[i]*k
+    
+  }
+  
+  for(i in 2:nrow(bathtub_df)){
+    if(bathtub_df$storage_new[i] > bathtub_df$capacity[i]){
+      bathtub_df$storage_final[i] = bathtub_df$capacity[i]
+      bathtub_df$flow_out_final[i] = bathtub_df$flow_out[i] + (bathtub_df$storage_new[i] - bathtub_df$capacity[i])
+    }
+    else{
+      bathtub_df$storage_final[i] = bathtub_df$storage_new[i]
+      bathtub_df$flow_out_final[i] = bathtub_df$flow_out[i]
+    }
     
   }
   
