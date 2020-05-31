@@ -53,6 +53,9 @@ library(RNRCS)
 
 #SOBOL
 library(sensitivity)
+
+#LHS
+library(pse)
 ```
 
 **2.** Pull in snowpack melt data.
@@ -109,7 +112,6 @@ melt_df <- as.data.frame(melt(SWE = snotel_final_swe, input_year = input_year, m
 ```{r}
 # sobol method
 
-# sobol method - short
 
 # number of parameters
 # np = 500
@@ -140,6 +142,40 @@ melt_df <- as.data.frame(melt(SWE = snotel_final_swe, input_year = input_year, m
 #sobol_tell$T
 
 #plot(sobol_tell)
+
+############################ LHS Method
+
+factors = c("sens_mf")
+
+nsets = 100
+
+q = c("qnorm")
+
+sd_mf = abs(0.3 * 0.0131234)
+q.arg = list(mean = 0.0131234, sd = sd_mf)
+
+y = LHS(NULL, factors, nsets, q, q.arg)
+LHS_pars = get.data(y)
+
+LHS_results = matrix(nrow = nsets, ncol = 1)
+
+LHS_model_results = mapply(FUN = melt,
+                           mf = LHS_pars$sens_mf,
+                           input_year = input_year,
+                           MoreArgs = list(SWE = snotel_final_swe))
+
+LHS_results = matrix((unlist(LHS_model_results)), ncol = 1, byrow = TRUE)
+
+colnames(LHS_results) = c("sens_mf")
+
+#y = pse::tell(y, t(LHS_results))
+
+# tell step isn't working again...
+
+#pse::plotprcc(y)
+
+#y$prcc
+
 ```
 
 **6.** Graph results.
@@ -172,6 +208,72 @@ bathtub_df <- as.data.frame(outflow(input_df = melt_df, storage_initial = 70555,
 
 **9.** Perform sensitivity analysis on K and evaporation.
 ```{r}
+
+# number of parameters
+ np = 500
+
+# distributions for parameters
+ sobol_k = rnorm(mean = 0.001, sd = 0.2, n = np)
+ sobol_evap = rnorm(mean = 22.6, sd = 0.2, n = np)
+
+ X1 = cbind.data.frame(sobol_k, sobol_evap)
+
+ sobol_k = rnorm(mean = 0.001, sd = 0.2, n = np)
+ sobol_evap = rnorm(mean = 22.6, sd = 0.2, n = np)
+
+ X2 = cbind.data.frame(sobol_k, sobol_evap)
+
+ sensitivity_res = sobol2007(model = NULL, X1, X2, nboot = 100)
+
+########
+
+res_sobol_result = mapply(FUN = outflow,
+                          k = sensitivity_res$X$sobol_k,
+                          evap = sensitivity_res$X$sobol_evap,
+                          MoreArgs = list(input_df = melt_df, storage_initial = 70555))
+
+sobol_tell = sensitivity::tell(sensitivity_res, res_sobol_result, sobol_result.names = "mean_outflow")
+
+
+sobol_tell$S
+
+sobol_tell$T
+
+plot(sobol_tell)
+
+# it runs, but really not sure what is goiign on with these values???
+
+#LHS Method
+
+factors = c("sens_k", "sens_evap")
+
+nsets = 100
+
+q = c("qnorm", "qnorm")
+
+sd_k = abs(0.001 * 0.2)
+sd_evap = abs(22.66 * 0.2)
+q.arg = list(list(mean = 0.001, sd = sd_k), list(mean = 22.66, sd = sd_evap))
+
+y = LHS(NULL, factors, nsets, q, q.arg)
+LHS_pars = get.data(y)
+
+LHS_results = matrix(nrow = nsets, ncol = 2)
+
+LHS_model_results = mapply(FUN = outflow,
+                          k = LHS_pars$sens_k,
+                          evap = LHS_pars$sens_evap,
+                          MoreArgs = list(input_df = melt_df, storage_initial = 70555))
+
+LHS_results = matrix((unlist(LHS_model_results)), ncol = 2, byrow = TRUE)
+
+colnames(LHS_results) = c("sens_k", "sens_evap")
+
+y = pse::tell(y, t(LHS_results))
+
+pse::plotprcc(y)
+
+y$prcc
 
 ```
 
