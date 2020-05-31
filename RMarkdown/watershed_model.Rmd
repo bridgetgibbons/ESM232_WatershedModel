@@ -164,7 +164,7 @@ source("../R/bathtub_submodel.R")
 **8.** Run bathtub_submodel with results from snowpack melt. ODE (if time allows) 
 ```{r}
 
-bathtub_df <- as.data.frame(outflow(input_df = melt_df, storage_initial = 70555, k = 0.001, evap = 22.66))
+bathtub_df <- as.data.frame(outflow(input_df = melt_df, storage_initial = 70555, k = 0.001, evap = 22.66, outflow_only = FALSE))
 
 
 ```

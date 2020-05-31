@@ -23,7 +23,7 @@
 #evap in AF and storage_initial in AF 
 
 
-outflow = function(input_df, storage_initial = 70555, k = 0.001, evap = 22.66)
+outflow = function(input_df, storage_initial = 70555, k = 0.001, evap = 22.66, outflow_only = TRUE)
   
 {
   
@@ -46,7 +46,15 @@ outflow = function(input_df, storage_initial = 70555, k = 0.001, evap = 22.66)
     
   }
   
-  return(bathtub_df)
+  mean_outflow = mean(bathtub_df$flow_out)
+  
+  if(outflow_only){
+    return(mean_outflow)
+  }
+  else{
+    return(bathtub_df)
+  }
+  
   
 }
 
