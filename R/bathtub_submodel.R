@@ -52,7 +52,7 @@ outflow = function(input_df, storage_initial = 70555, k = 0.01, evap = 22.66, ou
   for(i in 2:nrow(bathtub_df)){
     if(bathtub_df$storage_new[i] > bathtub_df$capacity[i]){
       bathtub_df$storage_final[i] = bathtub_df$capacity[i]
-      bathtub_df$flow_out_final[i] = bathtub_df$flow_out[i] + (bathtub_df$storage_new[i] - bathtub_df$capacity[i])
+      bathtub_df$flow_out_final[i] = bathtub_df$flow_in[i]
     }
     else{
       bathtub_df$storage_final[i] = bathtub_df$storage_new[i]
