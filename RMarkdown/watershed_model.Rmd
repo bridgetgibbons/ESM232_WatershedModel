@@ -274,6 +274,25 @@ pse::plotprcc(y)
 
 y$prcc
 
+pse::plotscatter(y, col="blue", cex=5)
+
+
+# now need to add uncertainty bounds on our estimates
+
+LHS_results = as.data.frame(LHS_results)
+
+LHS_results = LHS_results %>% gather(value="mean_value", key="outflow")
+
+ggplot(LHS_results, aes(outflow, mean_value, col=outflow))+geom_boxplot()+labs(y="Mean Outflow", x ="")
+
+# cumulative distribution
+
+ggplot(LHS_results, aes(mean_value)) +
+  stat_ecdf(geom = "step") +
+  xlab("Mean Outflow") +
+  labs(title = "Cumulative Distribution LHS Method") +
+  theme_classic()
+
 ```
 
 **10.** Graph results.
