@@ -30,7 +30,7 @@
 
 
 
-melt = function(mf = 0.0131234, SWE, input_year, flow_only = TRUE) # think we will need to add a time/day component and SWE but im not sure where/how?
+melt = function(mf = 0.0131234, SWE, input_year, flow_only = FALSE) # think we will need to add a time/day component and SWE but im not sure where/how?
   
   {
   
@@ -53,7 +53,6 @@ melt = function(mf = 0.0131234, SWE, input_year, flow_only = TRUE) # think we wi
     output_df$flow[i] = output_df$melt_factor[i]*output_df$tot_SWE[i]  
   }
   
-  flow_only <- output_df$flow
   
   if(flow_only){
     return(flow_only)
