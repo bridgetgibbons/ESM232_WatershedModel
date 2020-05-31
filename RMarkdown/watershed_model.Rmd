@@ -112,24 +112,24 @@ melt_df <- as.data.frame(melt(SWE = snotel_final_swe, input_year = input_year, m
 # sobol method - short
 
 # number of parameters
-np = 500
-
-# distributions for parameters
-sobol_mf = rnorm(mean = 0.0131234, sd = 0.0098425, n = np)
-
-X1 = cbind.data.frame(sobol_mf)
-
-sobol_mf = rnorm(mean = 0.0131234, sd = 0.0098425, n = np)
-
-X2 = cbind.data.frame(sobol_mf)
-
-sensitivity_mf = sobol2007(model = NULL, X1, X2, nboot = 100)
-
-########
-
-mf_sobol_result = mapply(FUN = melt, 
-                      mf = sensitivity_mf$X$sobol_mf,
-                      MoreArgs = list(SWE = snotel_final_swe, input_year = input_year))
+# np = 500
+# 
+# # distributions for parameters
+# sobol_mf = rnorm(mean = 0.0131234, sd = 0.0098425, n = np)
+# 
+# X1 = cbind.data.frame(sobol_mf)
+# 
+# sobol_mf = rnorm(mean = 0.0131234, sd = 0.0098425, n = np)
+# 
+# X2 = cbind.data.frame(sobol_mf)
+# 
+# sensitivity_mf = sobol2007(model = NULL, X1, X2, nboot = 100)
+# 
+# ########
+# 
+# mf_sobol_result = mapply(FUN = melt, 
+#                          mf = sensitivity_mf$X$sobol_mf,
+#                          MoreArgs = list(SWE = snotel_final_swe, input_year = input_year))
 
 #sobol_tell = sensitivity::tell(sensitivity_mf, mf_sobol_result)
 
@@ -170,7 +170,7 @@ bathtub_df <- as.data.frame(outflow(input_df = melt_df, storage_initial = 70555,
 ```
 
 
-**9.** Perform sensitivity analysis on K.
+**9.** Perform sensitivity analysis on K and evaporation.
 ```{r}
 
 ```
