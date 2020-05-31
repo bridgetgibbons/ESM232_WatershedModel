@@ -26,11 +26,14 @@ water_temp = function(water, ambient, bathtub_df, input_year){
                         day = bathtub_df$day,
                         month = bathtub_df$month,
                         year = bathtub_df$year,
-                        flow = bathtub_df$flow_out,
+                        flow = bathtub_df$flow_out_final,
                         temp_w = water_df$mean_water_temp_c,
                         temp_a = air_df$daily_max_temp_c,
-                        temp_calc = NA) %>% 
-    mutate(c = ifelse(flow>(mean(flow)), 0.6, 0.8))
+                        temp_calc = NA,
+                        c = 0.7) 
+  
+ # %>% 
+  #  mutate(c = ifelse(flow>(mean(flow)), 0.6, 0.8))
   
   
   for(i in 1:nrow(temp_df)){
