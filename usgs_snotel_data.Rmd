@@ -56,11 +56,11 @@ comment(sj_available_data) #defines all column heading included in teh dataset
 
 #Pull discharge sites
 
-# sj_dis_sites <- sj_available_data %>% 
-#   #filter(site_tp_cd == "ST") %>%  #ST for stream
-#   filter(parm_cd == "00060") %>% #param code for Discharge, mean daily (cfs)
-#   mutate(guage_type = "Streamflow") %>% 
-#   distinct(site_no, .keep_all = TRUE)
+sj_dis_sites <- sj_available_data %>%
+  #filter(site_tp_cd == "ST") %>%  #ST for stream
+  filter(parm_cd == "00060") %>% #param code for Discharge, mean daily (cfs)
+  mutate(guage_type = "Streamflow") %>%
+  distinct(site_no, .keep_all = TRUE)
 
 
 #Exploring options for temp: 
@@ -89,6 +89,17 @@ sj_water_temp_sites <- sj_available_data %>%
 sj_air_temp_sites <- sj_available_data %>% 
   filter(parm_cd == "00020") %>% #param code for Temperature, air, degrees C
   mutate(guage_type = "Air_Temp_C") %>% 
+  filter(count_nu > 9) %>% 
+  distinct(site_no, .keep_all = TRUE) %>% 
+  st_as_sf(coords = c("dec_long_va",
+                      "dec_lat_va"), 
+           crs = 4269)
+
+#Discharge 
+
+sj_discharge_sites <- sj_available_data %>% 
+  filter(parm_cd == "00060") %>% #param code for Temperature, air, degrees C
+  mutate(guage_type = "Discharge") %>% 
   filter(count_nu > 9) %>% 
   distinct(site_no, .keep_all = TRUE) %>% 
   st_as_sf(coords = c("dec_long_va",
@@ -163,6 +174,17 @@ usj_air_map <- ggplot() +
   theme_classic()
 
 # usj_air_map
+
+
+ggplot() +
+  geom_sf(data = sj_discharge_sites,
+          colour = "cornflowerblue", 
+           size = 2,
+           alpha = 0.5)+
+  geom_sf(data = USJ_HUC8,
+          fill = NA,
+          colour = "black") +
+  theme_classic()
 ```
 
 ```{r}
@@ -186,10 +208,13 @@ usj_huc8_map <- tm_basemap("Esri.WorldImagery") + #Add a basemap explored previo
   #         size = 0.1,
   #         id = "station_nm",
   #         alpha = 0.8) +
-      tm_shape(usj_snotel)+
+  #     tm_shape(usj_snotel)+
+  # tm_dots(col = "cornflowerblue",
+  #         size = 0.1,
+  #         id = "station_name")
+tm_shape(sj_discharge_sites) +
   tm_dots(col = "cornflowerblue",
-          size = 0.1,
-          id = "station_name")
+          size = 0.1)
 
 usj_huc8_map
 

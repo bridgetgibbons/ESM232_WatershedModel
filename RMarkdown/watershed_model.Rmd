@@ -187,7 +187,8 @@ y = pse::tell(y, t(LHS_results))
 melt_plot <- ggplot(data = melt_df) +
   geom_area(aes(x = date, y = tot_SWE/1000, group = 1, color = "tot_SWE"), size = 1, fill = "lightblue") +
   geom_col(aes(x = date, y = flow/1000, color = "flow"), fill = "cornflowerblue") +
- # scale_y_continuous(sec.axis = sec_axis(~., name = "flow")) +
+  geom_line(aes(x = date, y = temp*10, color = "temp"), fill = "goldenrod") +
+ scale_y_continuous(sec.axis = sec_axis(~., name = "temp")) +
   theme_classic() +
   ggtitle("Snopack Melt 2015 - SNOTEL Gauge 843") +
   xlab("Date") +
@@ -199,7 +200,12 @@ melt_plot <- ggplot(data = melt_df) +
   theme(legend.position = "bottom") +
   theme(legend.background = element_rect(color = "black", fill = NA))+  
   guides(color=guide_legend("SWE and Melt Data")) +
- scale_color_manual(labels = c("Melt", "Total SWE"), values = c("cornflowerblue", "lightblue")) +
+ scale_color_manual(labels = c("Melt", 
+                               "Temp",
+                               "Total SWE"), 
+                    values = c("cornflowerblue", 
+                               "goldenrod", 
+                               "lightblue")) +
   scale_y_continuous(expand = c(0,0)) +
   scale_x_date(expand = c(0,0))
   
@@ -319,9 +325,9 @@ ggplot(LHS_results, aes(mean_value)) +
 ```{r}
 
 bathtub_plot <- ggplot(data = bathtub_df) +
-  geom_area(aes(x = date, y = storage_new, group = 1, color = "storage_new"), size = 1, fill = "lightblue") +
-  geom_line(aes(x = date, y = flow, group = 1, color = "flow"), size = 0.5) +
-  geom_line(aes(x = date, y = flow_out, group = 1, color = "flow_out"), size = 0.5)+
+  geom_area(aes(x = date, y = storage_final, group = 1, color = "storage_final"), size = 1, fill = "lightblue") +
+  geom_line(aes(x = date, y = flow_in, group = 1, color = "flow_in"), size = 0.5) +
+  geom_line(aes(x = date, y = flow_out_final, group = 1, color = "flow_out_final"), size = 0.5)+
    #geom_line(aes(x = date, y = spill, group = 1, color = "spill"), size = 0.5) +
   theme_classic() +
   ggtitle("Resevoir Storage and Outlfows 2015") +
@@ -334,22 +340,20 @@ bathtub_plot <- ggplot(data = bathtub_df) +
   theme(legend.position = "bottom") +
   theme(legend.background = element_rect(color = "black", fill = NA))+  
   guides(color=guide_legend("Resevoir Data")) +
- scale_color_manual(labels = c("Daily Storage", 
-                               "Flow In", 
-                               "Flow Out"#, 
-                               #"Spill"
+ scale_color_manual(labels = c("Flow In", 
+                               "Flow Out", 
+                               "Daily Storage"
                                ), 
                     values = c("cornflowerblue", 
                                "sienna", 
-                               "forestgreen"#, 
-                              # "goldenrod3"
+                               "forestgreen"
                                )) +
   #scale_y_continuous(expand = c(0,0)) +
  # scale_x_date(expand = c(0,0)) +
-  geom_hline(aes(yintercept = 70555),
+  geom_hline(aes(yintercept = 129700),
              color = "black",
              linetype = "dashed",
-             size = 1)
+             size = 0.5)
   
 bathtub_plot
   
