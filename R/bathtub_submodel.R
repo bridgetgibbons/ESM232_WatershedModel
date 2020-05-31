@@ -61,7 +61,7 @@ outflow = function(input_df, storage_initial = 70555, k = 0.01, evap = 22.66, ou
     
   }
   
-  mean_outflow = mean(bathtub_df$flow_out)
+  mean_outflow = mean(bathtub_df$flow_out_final)
   
   if(outflow_only){
     return(mean_outflow)
