@@ -188,26 +188,27 @@ melt_plot <- ggplot(data = melt_df) +
   geom_area(aes(x = date, y = tot_SWE/1000, group = 1, color = "tot_SWE"), size = 1, fill = "lightblue") +
   geom_col(aes(x = date, y = flow/1000, color = "flow"), fill = "cornflowerblue") +
   geom_line(aes(x = date, y = temp*10, color = "temp"), fill = "goldenrod") +
- scale_y_continuous(sec.axis = sec_axis(~., name = "temp")) +
   theme_classic() +
   ggtitle("Snopack Melt 2015 - SNOTEL Gauge 843") +
   xlab("Date") +
-  ylab("Daily Total SWE & Melt\n(thousands of acre feet)\n") +
   theme(plot.title = element_text(size=12))+
   theme(axis.title = element_text(size = 10)) +
   theme(legend.title = element_text(size=10)) +
   theme(plot.title = element_text(hjust = 0.5))+
   theme(legend.position = "bottom") +
-  theme(legend.background = element_rect(color = "black", fill = NA))+  
-  guides(color=guide_legend("SWE and Melt Data")) +
+  theme(legend.background = element_rect(color = "NA", fill = NA))+  
  scale_color_manual(labels = c("Melt", 
                                "Temp",
                                "Total SWE"), 
                     values = c("cornflowerblue", 
                                "goldenrod", 
                                "lightblue")) +
-  scale_y_continuous(expand = c(0,0)) +
-  scale_x_date(expand = c(0,0))
+   scale_y_continuous(expand = c(0,0),
+    name = "Daily Total SWE & Melt\n(thousands of acre feet)\n",
+    sec.axis = sec_axis( trans=~./10, name="Daily Mean Temperature\n(degrees Celcius)\n")
+  ) +
+  scale_x_date(expand = c(0,0)) +
+  guides(color=guide_legend(override.aes=list(fill=NA)))
   
 melt_plot
 
@@ -225,7 +226,7 @@ source("../R/bathtub_submodel.R")
 **8.** Run bathtub_submodel with results from snowpack melt. ODE (if time allows) 
 ```{r}
 
-bathtub_df <- as.data.frame(outflow(input_df = melt_df, storage_initial = 70555, k = 0.01, evap = 22.66, outflow_only = FALSE))
+bathtub_df <- as.data.frame(outflow(input_df = melt_df, storage_initial = 70555, k = 0.05, evap = 22.66, outflow_only = FALSE))
 
 
 ```
@@ -324,35 +325,54 @@ ggplot(LHS_results, aes(mean_value)) +
 ```{r}
 
 bathtub_plot <- ggplot(data = bathtub_df) +
-  geom_area(aes(x = date, y = storage_final, group = 1, color = "storage_final"), size = 1, fill = "lightblue") +
-  geom_line(aes(x = date, y = flow_in, group = 1, color = "flow_in"), size = 0.5) +
-  geom_line(aes(x = date, y = flow_out_final, group = 1, color = "flow_out_final"), size = 0.5)+
-   #geom_line(aes(x = date, y = spill, group = 1, color = "spill"), size = 0.5) +
+  geom_area(aes(x = date, 
+                y = storage_final, 
+                group = 1, 
+                color = "storage_final"), 
+            size = 1, 
+            fill = "lightgrey", 
+            alpha = 0.5) +
+  geom_area(aes(x = date, 
+                y = flow_in, 
+                group = 1, 
+                color = "flow_in"), 
+                size = 0, 
+                fill = "cornflowerblue", 
+                alpha = 0.5) +
+  geom_line(aes(x = date, 
+                y = flow_out_final, 
+                group = 1, 
+                color = "flow_out_final"), 
+            size = 0.5) +
   theme_classic() +
-  ggtitle("Resevoir Storage and Outlfows 2015") +
+  ggtitle("Resevoir Storage, Inflow and Outlfow in 2015") +
   xlab("Date") +
-  ylab("Water(acre feet)") +
+  ylab("Water (acre feet)\n") +
   theme(plot.title = element_text(size=12))+
   theme(axis.title = element_text(size = 10)) +
   theme(legend.title = element_text(size=10)) +
   theme(plot.title = element_text(hjust = 0.5))+
   theme(legend.position = "bottom") +
-  theme(legend.background = element_rect(color = "black", fill = NA))+  
+  theme(legend.background = element_rect(color = NA, 
+                                         fill = NA))+ 
+  theme(legend.key = element_rect(color = "white",  
+                                  fill = "white"))+
   guides(color=guide_legend("Resevoir Data")) +
  scale_color_manual(labels = c("Flow In", 
                                "Flow Out", 
-                               "Daily Storage"
+                               "Storage"
                                ), 
                     values = c("cornflowerblue", 
-                               "sienna", 
-                               "forestgreen"
+                               "coral", 
+                               "lightgrey"
                                )) +
-  #scale_y_continuous(expand = c(0,0)) +
- # scale_x_date(expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 150000)) +
+  scale_x_date(expand = c(0,0)) +
   geom_hline(aes(yintercept = 129700),
              color = "black",
              linetype = "dashed",
-             size = 0.5)
+             size = 0.5) +
+   guides(color=guide_legend(override.aes=list(fill=NA)))
   
 bathtub_plot
   
@@ -388,15 +408,116 @@ water_temp <- as.data.frame(water_temp(ambient = ambient, water = water, bathtub
 
 ```
 
-**14.** Pull Stream Gauge Data.
-
-**15.** Graph results.
+**14.** Graph results.
 ```{r}
 
-ggplot(data = water_temp)+
-  geom_line(aes(x = date, y = temp_a), color = "orange")+
-  geom_line(aes(x = date, y = temp_w_change), color = "blue")
+# water_temp_graph <- water_temp %>% 
+#   group_by(week = paste(week(date))) %>% 
+#   group_by(week) %>% 
+#   mutate(week_temp_a = mean(temp_a)) %>% 
+#   mutate(week_temp_w_change = mean(temp_w_change))
+  
 
+
+temp_plot <- ggplot(data = water_temp) +
+  geom_line(aes(x = date, 
+                y = temp_a, 
+                group = 1, 
+                color = "temp_a")) +
+    geom_line(aes(x = date, 
+                y = temp_w_change, 
+                group = 1, 
+                color = "temp_w_change")
+             ) +
+  geom_col(aes(x = date, 
+                y = flow/10000, 
+                group = 1, 
+                color = "flow"), 
+            fill = "lightblue",
+           alpha = 0.5,
+            size = 0.5) +
+  theme_classic() +
+  ggtitle("Resevoir Storage, Inflow and Outlfow in 2015") +
+  xlab("Date") +
+  ylab("Water (acre feet)\n") +
+  theme(plot.title = element_text(size=12))+
+  theme(axis.title = element_text(size = 10)) +
+  theme(legend.title = element_text(size=10)) +
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme(legend.position = "bottom") +
+  theme(legend.background = element_rect(color = NA, 
+                                         fill = NA))+ 
+  theme(legend.key = element_rect(color = "white",  
+                                  fill = "white"))+
+  guides(color=guide_legend("")) +
+ scale_color_manual(labels = c("Daily Flow", 
+                               "Ambiant Temperature",
+                               "Water Temperature"), 
+                    values = c("lightblue", 
+                               "goldenrod", 
+                               "khaki3")) +
+   scale_y_continuous(expand = c(0,0),
+                      
+    name = "Water & Ambiant Temperature\n(degrees Celcius)\n",
+    
+    sec.axis = sec_axis( trans=~.*10, name="Daily Flow\n(thousands of acre feet/day)\n")
+    
+  ) +
+  scale_x_date(expand = c(0,0))+
+  guides(color=guide_legend(override.aes=list(fill=NA)))
+  
+temp_plot
+
+
+temp_plot_2 <- ggplot(data = water_temp) +
+  geom_line(aes(x = date, 
+                y = temp_a, 
+                group = 1, 
+                color = "temp_a")) +
+    geom_line(aes(x = date, 
+                y = temp_w_change, 
+                group = 1, 
+                color = "temp_w_change")
+             ) +
+  geom_col(aes(x = date, 
+                y = flow/10000, 
+                group = 1, 
+                color = "flow"),
+           fill = "lightblue",
+           alpha = 0.5,
+            size = 0.5) +
+  theme_classic() +
+  ggtitle("Resevoir Storage, Inflow and Outlfow\nMarch - June 2015") +
+  xlab("Date") +
+  ylab("Water (acre feet)\n") +
+  theme(plot.title = element_text(size=12))+
+  theme(axis.title = element_text(size = 10)) +
+  theme(legend.title = element_text(size=10)) +
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme(legend.position = "bottom") +
+  theme(legend.background = element_rect(color = NA, 
+                                         fill = NA))+ 
+  theme(legend.key = element_rect(color = "white",  
+                                  fill = "white"))+
+  guides(color=guide_legend("")) +
+ scale_color_manual(labels = c("Daily Flow", 
+                               "Ambiant Temperature",
+                               "Water Temperature"), 
+                    values = c("lightblue", 
+                               "goldenrod", 
+                               "khaki3")) +
+   scale_y_continuous(expand = c(0,0),
+                      
+    name = "Water & Ambiant Temperature\n(degrees Celcius)\n",
+    
+    sec.axis = sec_axis( trans=~.*10, name="Daily Flow\n(thousands of acre feet/day)\n")
+    
+  ) +
+  scale_x_date(expand = c(0,0),
+               limits = as.Date(c("2015-03-01","2015-06-30")))+
+  guides(color=guide_legend(override.aes=list(fill=NA)))
+  
+temp_plot_2
 
 # maybe would be nice to calculate some sort of running average to visualize overall trends?
 ```
