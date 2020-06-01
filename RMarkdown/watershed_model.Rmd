@@ -115,25 +115,23 @@ melt_df <- as.data.frame(melt(SWE = snotel_final_swe, input_year = input_year, m
 
 # number of parameters
  np = 500
-#
-# # distributions for parameters
-# sobol_mf = rnorm(mean = 0.0131234, sd = 0.0098425, n = np)
-#
-# X1 = cbind.data.frame(sobol_mf)
-#
-# sobol_mf = rnorm(mean = 0.0131234, sd = 0.0098425, n = np)
-#
-# X2 = cbind.data.frame(sobol_mf)
-#
-# sensitivity_mf = sobol2007(model = NULL, X1, X2, nboot = 100)
-#
-# ########
-#
- #mf_sobol_result = mapply(FUN = melt,
-                        #  mf = sensitivity_mf$X$sobol_mf,
-                        #  MoreArgs = list(SWE = snotel_final_swe, input_year = input_year))
 
-#sobol_tell = sensitivity::tell(sensitivity_mf, mf_sobol_result)
+# # distributions for parameters
+ sobol_mf = rnorm(mean = 0.0131234, sd = 0.0098425, n = np)
+
+ X1 = cbind.data.frame(sobol_mf)
+
+ sobol_mf = rnorm(mean = 0.0131234, sd = 0.0098425, n = np)
+
+ X2 = cbind.data.frame(sobol_mf)
+
+ sensitivity_mf = sobol2007(model = NULL, X1, X2, nboot = 100)
+
+ mf_sobol_result = mapply(FUN = melt,
+                          mf = sensitivity_mf$X$sobol_mf,
+                          MoreArgs = list(SWE = snotel_final_swe, input_year = input_year))
+
+sobol_tell = sensitivity::tell(sensitivity_mf, mf_sobol_result)
 
 # something going wrong in the tell step
 
@@ -273,8 +271,6 @@ y = pse::tell(y, t(LHS_results))
 pse::plotprcc(y)
 
 y$prcc
-
-pse::plotscatter(y, col="blue", cex=5)
 
 
 # now need to add uncertainty bounds on our estimates
