@@ -65,10 +65,14 @@ library(pse)
 snotel_vallecito_temp_swe <- grabNRCS.data(network = "SNTL", 
                             site_id = 843,
                             timescale = "daily", 
-                            DayBgn = "1990-10-01", #what start date do we want? 
+                            DayBgn = "1990-10-01", 
                             DayEnd = "2020-09-30") %>% 
-  select(Date, Snow.Water.Equivalent..in..Start.of.Day.Values, Air.Temperature.Average..degF., Air.Temperature.Maximum..degF.) %>% 
-  rename(Snow_Water_Equivalent_in = Snow.Water.Equivalent..in..Start.of.Day.Values, Daily_Ave_Temp_F = Air.Temperature.Average..degF., Daily_Max_Temp_F = Air.Temperature.Maximum..degF.)%>% 
+  select(Date, 
+         Snow.Water.Equivalent..in..Start.of.Day.Values, 
+         Air.Temperature.Average..degF., Air.Temperature.Maximum..degF.) %>% 
+  rename(Snow_Water_Equivalent_in = Snow.Water.Equivalent..in..Start.of.Day.Values,
+         Daily_Ave_Temp_F = Air.Temperature.Average..degF., 
+         Daily_Max_Temp_F = Air.Temperature.Maximum..degF.) %>% 
   mutate(Date = as.Date.character(Date)) %>% 
   mutate(Daily_Ave_Temp_C = (Daily_Ave_Temp_F*0.5556)) %>% 
   mutate(Daily_Max_Temp_C = (Daily_Max_Temp_F*0.5556))
@@ -179,7 +183,29 @@ y = pse::tell(y, t(LHS_results))
 ```{r}
 
 melt_plot <- ggplot(data = melt_df) +
-  geom_line(aes(x = date, y = flow))
+  geom_area(aes(x = date, y = tot_SWE/1000, group = 1, color = "tot_SWE"), size = 1, fill = "lightblue") +
+  geom_col(aes(x = date, y = flow/1000, color = "flow"), fill = "cornflowerblue") +
+  geom_line(aes(x = date, y = temp*10, color = "temp"), fill = "goldenrod") +
+ scale_y_continuous(sec.axis = sec_axis(~., name = "temp")) +
+  theme_classic() +
+  ggtitle("Snopack Melt 2015 - SNOTEL Gauge 843") +
+  xlab("Date") +
+  ylab("Daily Total SWE & Melt\n(thousands of acre feet)\n") +
+  theme(plot.title = element_text(size=12))+
+  theme(axis.title = element_text(size = 10)) +
+  theme(legend.title = element_text(size=10)) +
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme(legend.position = "bottom") +
+  theme(legend.background = element_rect(color = "black", fill = NA))+  
+  guides(color=guide_legend("SWE and Melt Data")) +
+ scale_color_manual(labels = c("Melt", 
+                               "Temp",
+                               "Total SWE"), 
+                    values = c("cornflowerblue", 
+                               "goldenrod", 
+                               "lightblue")) +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_x_date(expand = c(0,0))
   
 melt_plot
 
@@ -294,6 +320,39 @@ ggplot(LHS_results, aes(mean_value)) +
 **10.** Graph results.
 ```{r}
 
+bathtub_plot <- ggplot(data = bathtub_df) +
+  geom_area(aes(x = date, y = storage_final, group = 1, color = "storage_final"), size = 1, fill = "lightblue") +
+  geom_line(aes(x = date, y = flow_in, group = 1, color = "flow_in"), size = 0.5) +
+  geom_line(aes(x = date, y = flow_out_final, group = 1, color = "flow_out_final"), size = 0.5)+
+   #geom_line(aes(x = date, y = spill, group = 1, color = "spill"), size = 0.5) +
+  theme_classic() +
+  ggtitle("Resevoir Storage and Outlfows 2015") +
+  xlab("Date") +
+  ylab("Water(acre feet)") +
+  theme(plot.title = element_text(size=12))+
+  theme(axis.title = element_text(size = 10)) +
+  theme(legend.title = element_text(size=10)) +
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme(legend.position = "bottom") +
+  theme(legend.background = element_rect(color = "black", fill = NA))+  
+  guides(color=guide_legend("Resevoir Data")) +
+ scale_color_manual(labels = c("Flow In", 
+                               "Flow Out", 
+                               "Daily Storage"
+                               ), 
+                    values = c("cornflowerblue", 
+                               "sienna", 
+                               "forestgreen"
+                               )) +
+  #scale_y_continuous(expand = c(0,0)) +
+ # scale_x_date(expand = c(0,0)) +
+  geom_hline(aes(yintercept = 129700),
+             color = "black",
+             linetype = "dashed",
+             size = 0.5)
+  
+bathtub_plot
+  
 ```
 
 **11.** Read in temperature data.
@@ -326,7 +385,9 @@ water_temp <- as.data.frame(water_temp(ambient = ambient, water = water, bathtub
 
 ```
 
-**14.** Graph results.
+**14.** Pull Stream Gauge Data.
+
+**15.** Graph results.
 ```{r}
 
 ggplot(data = water_temp)+

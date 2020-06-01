@@ -59,7 +59,7 @@ melt = function(mf = 0.0131234, SWE, input_year, flow_only = TRUE) # think we wi
     else{
     output_df$melt_factor[i] = ifelse(swe_df$temp[i] < 0, 0, mf*swe_df$temp[i])
     output_df$tot_SWE[i] = 464000*(swe_df$swe_ft[i])# get total water equivalent for the headwaters area in acrefeet
-    output_df$flow[i] = output_df$melt_factor[i]*output_df$tot_SWE[i]  
+    output_df$flow[i] = output_df$melt_factor[i]*output_df$tot_SWE[i-1]  
     }
   }
   
@@ -74,6 +74,7 @@ melt = function(mf = 0.0131234, SWE, input_year, flow_only = TRUE) # think we wi
   
   
 }
+
 
 #error checking, if no SWE or not enough, error 
 

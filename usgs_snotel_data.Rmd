@@ -56,11 +56,11 @@ comment(sj_available_data) #defines all column heading included in teh dataset
 
 #Pull discharge sites
 
-# sj_dis_sites <- sj_available_data %>% 
-#   #filter(site_tp_cd == "ST") %>%  #ST for stream
-#   filter(parm_cd == "00060") %>% #param code for Discharge, mean daily (cfs)
-#   mutate(guage_type = "Streamflow") %>% 
-#   distinct(site_no, .keep_all = TRUE)
+sj_dis_sites <- sj_available_data %>%
+  #filter(site_tp_cd == "ST") %>%  #ST for stream
+  filter(parm_cd == "00060") %>% #param code for Discharge, mean daily (cfs)
+  mutate(guage_type = "Streamflow") %>%
+  distinct(site_no, .keep_all = TRUE)
 
 
 #Exploring options for temp: 
@@ -89,6 +89,17 @@ sj_water_temp_sites <- sj_available_data %>%
 sj_air_temp_sites <- sj_available_data %>% 
   filter(parm_cd == "00020") %>% #param code for Temperature, air, degrees C
   mutate(guage_type = "Air_Temp_C") %>% 
+  filter(count_nu > 9) %>% 
+  distinct(site_no, .keep_all = TRUE) %>% 
+  st_as_sf(coords = c("dec_long_va",
+                      "dec_lat_va"), 
+           crs = 4269)
+
+#Discharge 
+
+sj_discharge_sites <- sj_available_data %>% 
+  filter(parm_cd == "00060") %>% #param code for Temperature, air, degrees C
+  mutate(guage_type = "Discharge") %>% 
   filter(count_nu > 9) %>% 
   distinct(site_no, .keep_all = TRUE) %>% 
   st_as_sf(coords = c("dec_long_va",
@@ -127,16 +138,16 @@ usj_snotel <- st_intersection(USJ_HUC8, meta_snotel_df) #only two!
 #Map it to see which temp and streamflow gauges work with the SNOTEL sites
 
 usj_snow_map <- ggplot() +
-  geom_sf(data = usj_snotel,
-          colour = "forestgreen", 
-           size = 2,
-           alpha = 0.5)+
   geom_sf(data = USJ_HUC8,
           fill = NA,
           colour = "black") +
-  theme_classic()
+    geom_sf(data = usj_snotel,
+          colour = "cornflowerblue", 
+           size = 2)+
+  theme_classic()+
+  ggtitle("SNOTEL Sites", subtitle = "2 sites in Upper San Juan River Watershed")
 
-# usj_snow_map
+usj_snow_map
 
 
 usj_stream_map <- ggplot() +
@@ -163,34 +174,47 @@ usj_air_map <- ggplot() +
   theme_classic()
 
 # usj_air_map
+
+
+ggplot() +
+  geom_sf(data = sj_discharge_sites,
+          colour = "cornflowerblue", 
+           size = 2,
+           alpha = 0.5)+
+  geom_sf(data = USJ_HUC8,
+          fill = NA,
+          colour = "black") +
+  theme_classic()
 ```
 
 ```{r}
 tmap_mode("view") #Set so the map will be interactive.
 
 usj_huc8_map <- tm_basemap("Esri.WorldImagery") + #Add a basemap explored previously in mapview.
-    tm_layout("Upper San Juan Gauges") +
+    tm_layout("Upper San Juan Snotel Gauge and Reservoir") +
   tm_shape(USJ_HUC8) +
+  tm_borders(col = "white", lwd = 2, lty = "solid", alpha = NA) +
   tm_fill("NAME",
-          col = "sienna2",
+          col = NA,
           legend.show = FALSE,
-          alpha = 0.4,
+          alpha = 0,
           id = "NAME") +
-    tm_shape(sj_water_temp_sites)+
+  #   tm_shape(sj_water_temp_sites)+
+  # tm_dots(col = "sienna",
+  #         size = 0.1,
+  #         id = "station_nm") +
+  #   tm_shape(sj_air_temp_sites)+
+  # tm_dots(col = "grey",
+  #         size = 0.1,
+  #         id = "station_nm",
+  #         alpha = 0.8) +
+  #     tm_shape(usj_snotel)+
+  # tm_dots(col = "cornflowerblue",
+  #         size = 0.1,
+  #         id = "station_name")
+tm_shape(sj_discharge_sites) +
   tm_dots(col = "cornflowerblue",
-          size = 0.1,
-          id = "station_nm",
-          alpha = 0.8) +
-    tm_shape(sj_air_temp_sites)+
-  tm_dots(col = "grey",
-          size = 0.1,
-          id = "station_nm",
-          alpha = 0.8) +
-      tm_shape(usj_snotel)+
-  tm_dots(col = "forestgreen",
-          size = 0.1,
-          id = "station_name",
-          alpha = 0.8)
+          size = 0.1)
 
 usj_huc8_map
 
