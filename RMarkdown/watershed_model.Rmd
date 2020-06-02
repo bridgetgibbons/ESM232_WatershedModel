@@ -155,8 +155,8 @@ q = c("qunif")
 
 q.arg = list(min = 0.00328084, max = 0.0229659)
 
-y = LHS(NULL, factors, nsets, q, q.arg)
-LHS_pars = get.data(y)
+model_y = LHS(NULL, factors, nsets, q, q.arg)
+LHS_pars = get.data(model_y)
 
 LHS_results = matrix(nrow = nsets, ncol = 1)
 
@@ -169,7 +169,7 @@ LHS_results = matrix(unlist(LHS_model_results), ncol = 1, byrow = TRUE)
 
 colnames(LHS_results) = c("sens_mf")
 
-y = pse::tell(y, t(LHS_results))
+y = pse::tell(model_y, t(LHS_results))
 
 # tell step isn't working again...
 
@@ -224,7 +224,7 @@ source("../R/bathtub_submodel.R")
 **8.** Run bathtub_submodel with results from snowpack melt. ODE (if time allows) 
 ```{r}
 
-bathtub_df <- as.data.frame(outflow(input_df = melt_df, storage_initial = 70555, k = 0.05, evap = 22.66, outflow_only = FALSE))
+bathtub_df <- as.data.frame(outflow(input_df = melt_df, storage_initial = 70555, k = 0.05, evap = 22.66, outflow_only = TRUE))
 
 
 ```
