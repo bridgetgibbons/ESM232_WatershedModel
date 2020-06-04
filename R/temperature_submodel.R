@@ -56,8 +56,14 @@ water_temp = function(water, ambient, bathtub_df, input_year){
       
     if(temp_df$temp_w[i] > temp_df$temp_a[i]){
       temp_df$temp_calc[i] = temp_df$temp_w[i]
-      }
+    }
 
+  }
+  
+  for(i in 2:nrow(temp_df)){
+    if(temp_df$flow[i] <= 0){
+      temp_df$temp_calc[i] = NA
+    }
   }
   return(temp_df)
 
