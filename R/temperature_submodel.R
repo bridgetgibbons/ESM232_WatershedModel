@@ -30,13 +30,25 @@ water_temp = function(water, ambient, bathtub_df, input_year){
                         temp_w = water_df$mean_water_temp_c,
                         temp_a = air_df$daily_max_temp_c,
                         temp_calc = NA,
-                        c = 0.7) 
+                        c = NA)
   
- # %>% 
-  #  mutate(c = ifelse(flow>(mean(flow)), 0.6, 0.8))
+  min_flow = bathtub_df %>% 
+    select(flow_out_final) %>% 
+    drop_na() %>% 
+    mutate(flow_out_final = ifelse(flow_out_final<0, 0, flow_out_final)) %>% 
+    mutate(min_flow = min(flow_out_final))
   
+  max_flow = bathtub_df %>% 
+    select(flow_out_final) %>% 
+    drop_na() %>% 
+    mutate(max_flow = max(flow_out_final))
   
   for(i in 1:nrow(temp_df)){
+    temp_df$c[i] = 1 - ((temp_df$flow[i] - min_flow$min_flow[i])/(max_flow$max_flow[i] - min_flow$min_flow[i]))
+  }
+  
+  for(i in 1:nrow(temp_df)){
+    
     if(temp_df$temp_a[i] >= temp_df$temp_w[i]){
       temp_df$temp_calc[i] = (temp_df$temp_a[i]*temp_df$c[i])+temp_df$temp_w[i]
     }
