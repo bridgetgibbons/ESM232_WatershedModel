@@ -44,6 +44,7 @@ library(readxl)
 library(ggplot2)
 library(paletteer)
 library(zoo)
+library(ggpubr)
 
 #USGS
 library(dataRetrieval)
@@ -134,48 +135,18 @@ melt_df <- as.data.frame(melt(SWE = snotel_final_swe, input_year = input_year, m
  mf_sobol_result = mapply(FUN = melt,
                           mf = sensitivity_mf$X$sobol_mf,
                           MoreArgs = list(SWE = snotel_final_swe, input_year = input_year))
+ 
+ cor.test(sensitivity_mf$X$sobol_mf, mf_sobol_result, method = "pearson")
+ 
+ scatter_data = as.data.frame(cbind(sensitivity_mf$X$sobol_mf, mf_sobol_result))
+ 
+ cor_plot <- ggscatter(scatter_data, x = "V1", y = "mf_sobol_result", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Melt Factor", ylab = "Daily Outflow (acre-feet")
 
-sobol_tell = sensitivity::tell(sensitivity_mf, mf_sobol_result)
+ cor_plot
 
-# something going wrong in the tell step
-
-#sobol_tell$S
-
-#sobol_tell$T
-
-#plot(sobol_tell)
-
-############################ LHS Method
-
-factors = c("sens_mf")
-
-nsets = 100
-
-q = c("qunif")
-
-q.arg = list(min = 0.00328084, max = 0.0229659)
-
-model_y = LHS(NULL, factors, nsets, q, q.arg)
-LHS_pars = get.data(model_y)
-
-LHS_results = matrix(nrow = nsets, ncol = 1)
-
-LHS_model_results = mapply(FUN = melt,
-                           mf = LHS_pars$sens_mf,
-                           input_year = input_year,
-                           MoreArgs = list(SWE = snotel_final_swe))
-
-LHS_results = matrix(unlist(LHS_model_results), ncol = 1, byrow = TRUE)
-
-colnames(LHS_results) = c("sens_mf")
-
-y = pse::tell(model_y, t(LHS_results))
-
-# tell step isn't working again...
-
-#pse::plotprcc(y)
-
-#y$prcc
 
 ```
 
@@ -267,55 +238,36 @@ sobol_tell$T
 
 plot(sobol_tell)
 
-# it runs, but really not sure what is goiign on with these values???
+######## Plotting Sensitivity Results
 
-#LHS Method
+result <- matrix((unlist(res_sobol_result)), ncol = 1, byrow = TRUE)
+colnames(result) = c("mean_flow")
 
-factors = c("sens_k", "sens_evap")
+result_df <- as.data.frame(result)
 
-nsets = 100
+result_2 <- cbind.data.frame(sobol_tell$X, mean_flow = sobol_tell$y)
 
-q = c("qunif", "qnorm")
+result_box <- gather(result_2, key = "parameter", value = "values", sobol_k, sobol_evap)
+  
+# boxplot
 
-sd_evap = abs(22.66 * 0.2)
+boxplot2 <- ggplot(data = result_box, aes(x = parameter, y = values)) +
+    geom_boxplot(aes(color = parameter)) +
+    labs(
+      title = "Sobol Method - Reservoir Sensitivity",
+      x = "Parameters",
+      y = "Variance"
+      ) +
+    theme_classic()
 
-q.arg = list(list(max = 0.1, min = 0), list(mean = 22.66, sd = sd_evap))
-
-y = LHS(NULL, factors, nsets, q, q.arg)
-LHS_pars = get.data(y)
-
-LHS_results = matrix(nrow = nsets, ncol = 2)
-
-LHS_model_results = mapply(FUN = outflow,
-                          k = LHS_pars$sens_k,
-                          evap = LHS_pars$sens_evap,
-                          MoreArgs = list(input_df = melt_df, storage_initial = 70555))
-
-LHS_results = matrix((unlist(LHS_model_results)), ncol = 2, byrow = TRUE)
-
-colnames(LHS_results) = c("sens_k", "sens_evap")
-
-y = pse::tell(y, t(LHS_results))
-
-pse::plotprcc(y)
-
-y$prcc
-
-
-# now need to add uncertainty bounds on our estimates
-
-LHS_results = as.data.frame(LHS_results)
-
-LHS_results = LHS_results %>% gather(value="mean_value", key="outflow")
-
-ggplot(LHS_results, aes(outflow, mean_value, col=outflow))+geom_boxplot()+labs(y="Mean Outflow", x ="")
+boxplot2
 
 # cumulative distribution
 
-ggplot(LHS_results, aes(mean_value)) +
+ggplot(result_df, aes(mean_flow)) +
   stat_ecdf(geom = "step") +
-  xlab("Mean Outflow") +
-  labs(title = "Cumulative Distribution LHS Method") +
+  xlab("Variance") +
+  labs(title = "Cumulative Distribution Sobol Method") +
   theme_classic()
 
 ```
