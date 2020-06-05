@@ -3,14 +3,11 @@
 # https://ascelibrary.org/doi/10.1061/%28ASCE%290733-9372%282005%29131%3A1%28139%29
 #The majority of streams showed an increase in water temperature of about 0.6–0.8°C for every 1°C increase in air temperature
 
-
-
-
 # temp_a = air temp
 # temp_w = water temp
 # c = temperature coefficient = 0.7 or could do sensitivity testing on that as well
 
-# are we interested in the daily change in temp or just the daily temp ignoring previous day?
+
 
 
 
@@ -70,19 +67,4 @@ water_temp = function(water, ambient, bathtub_df, input_year){
   }
 
 
- 
-#can we build water volume into c? Maybe c changes with volume, smaller c means faster/more change in temp, larger c means less temp change 
-# 
-# 
-# mutate(c = if(flow > (mean(flow)+sd(flow))){
-#   0.6} 
-#   else{
-#     if((mean(flow)-sd(flow))<flow & flow<(mean(flow)+sd(flow))){
-#       0.7
-#     }
-#     else{
-#       0.8
-#     }
-#   }
-# )
 

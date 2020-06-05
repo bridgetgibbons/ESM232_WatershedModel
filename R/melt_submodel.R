@@ -14,9 +14,6 @@
 # The degree-day factor must be calibrated for each basin and may change with elevation on the same time step and over time at the same point within a basin.
 
 
-# we could also run sensitivity analysis on this mf term, could be interesting to see how much the whole deal changes based on that
-
-
 # headwaters area = 72.5 miles^2 , 46400 acres
 # approx SWE feeding bathtub = headwaters_area*SWE
 
@@ -76,32 +73,3 @@ melt = function(mf = 0.0131234, SWE, input_year, flow_only = TRUE) # think we wi
 }
 
 
-#error checking, if no SWE or not enough, error 
-
-# i think this function needs either a for loop or to use mapply - if the input is daily temperature and SWE data, would we get a value of flow per day? I'm thinking we may want it to run line by line down a data frame, and then it can calculate the daily flow rate, which I think is what we want to feed into the bathtub
-
-
-
-#%>% 
-# mutate(melt_factor = ifelse(temp <= 0, 0, mf*temp)) 
-
-
-
-# if(swe_df$temp <= 0){
-#   melt_factor = 0
-# }
-# 
-# else{
-#   melt_factor = mf*temp
-# }
-# 
-# if(SWE = 0){
-#   melt_factor = 0
-# }
-
-
-#ifelse(swe_df$temp[i] <= 0, 0, 
-
-# if(output_df$flow < 0){
-#   output_df$flow = 0
-# }

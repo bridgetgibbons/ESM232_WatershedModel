@@ -8,24 +8,12 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
                       message = FALSE,
-                      error = FALSE)
+                      error = FALSE,
+                      warning = FALSE)
 ```
 
-Requirements:
-
--Provice some rationale for why this is an important question to answer/management area
-
-- Conceptual model 
-
-- Perform sensitivity analysis for at least two parameters
-- At least one sub-model should include a dynmaic ODE model
-- Model would involve 3 submodels
--Visualize results in 2 different ways (graphs) 
-- Write up results (explain how the model answers your original question/addresses your management area, explain importance of uncertainty in the results and any implications of the results for env. management) 
 
 
-- SUBMIT! 
-- model code (include .Rmd and tack on BRIEF write up at the end)
 
 #####1] Introductory Summary
 
@@ -470,5 +458,5 @@ temp_plot_2 <- ggplot(data = water_temp) +
   
 temp_plot_2
 
-# maybe would be nice to calculate some sort of running average to visualize overall trends?
 ```
+
