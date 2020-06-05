@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE,
+knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE,
                       error = FALSE,
                       warning = FALSE)
@@ -15,16 +15,31 @@ knitr::opts_chunk$set(echo = FALSE,
 
 
 
-#####1] Introductory Summary
+##### Introduction: Modeling Snowmelt Dominated Watersheds
+Our project aims to understand how snowmelt affects water availability in downstream reservoirs and water temperature in downstream reaches. This is an important question for the following three reasons: 
 
+1] The Upper San Juan River Watershed and its downstream reservoirs are highly dependent on seasonal snowpack. 
 
-Some writing here, one sentence. 
+2] Vallecito Dam captures runoff in the west fork of the Upper San Juan. 
 
-![**Conceptual Model (obviously we will put a final one in later**](Stream_Snow_Conceptual_Model.jpg)
+3] Downstream agricultural demand for surface water diversions and retention in the Vallecito Reservoir has limited instream environmental flows, stressing dependant ecosystems and altering streamflow temperature regimes. 
 
+Our model demonstrates how snow water equivalent in the high elevations of the Upper San Juan River Watershed can be used to predict water availability in a downstream reservoir and water temperature in downstream reaches using three submodels:
+
+- Snow Melt
+- Reservoir Storage
+- Stream Temperature 
+
+This model can be used to provide a summary of historic conditions in order to better inform water management strategies, particularly as snow pack and temperature trends are shifting due to climate change.
+
+Below is a conceptual model that outlines how we went about answering our environmental questions for the Upper San Juan Watershed. 
+
+![**Conceptual Model**](Stream_Snow_Conceptual_Model.jpg)
+
+Workflow: 
 
 **1.** Read in packages. 
-```{r}
+```{r, include = TRUE}
 library(tidyverse)
 library(janitor)
 library(here)
@@ -42,9 +57,6 @@ library(RNRCS)
 
 #SOBOL
 library(sensitivity)
-
-#LHS
-library(pse)
 ```
 
 **2.** Pull in snowpack melt data.
@@ -99,7 +111,6 @@ melt_df <- as.data.frame(melt(SWE = snotel_final_swe, input_year = input_year, m
   
 
 ```
-
 
 **5.** Perform sensitivity analysis on melt factor (mf).
 ```{r}
@@ -180,13 +191,12 @@ source("../R/bathtub_submodel.R")
 
 ```
 
-**8.** Run bathtub_submodel with results from snowpack melt. ODE (if time allows) 
+**8.** Run bathtub_submodel with results from snowpack melt. 
 ```{r}
 
 bathtub_df <- as.data.frame(outflow(input_df = melt_df, storage_initial = 70555, k = 0.05, evap = 22.66, outflow_only = FALSE))
 
 bathtub_mean_only <- as.data.frame(outflow(input_df = melt_df, storage_initial = 70555, k = 0.05, evap = 22.66, outflow_only = TRUE))
-
 
 ```
 
@@ -314,7 +324,6 @@ bathtub_plot <- ggplot(data = bathtub_df) +
    guides(color=guide_legend(override.aes=list(fill=NA)))
   
 bathtub_plot
-  
 ```
 
 **11.** Read in temperature data.
@@ -349,15 +358,6 @@ water_temp <- as.data.frame(water_temp(ambient = ambient, water = water, bathtub
 
 **14.** Graph results.
 ```{r}
-
-# water_temp_graph <- water_temp %>% 
-#   group_by(week = paste(week(date))) %>% 
-#   group_by(week) %>% 
-#   mutate(week_temp_a = mean(temp_a)) %>% 
-#   mutate(week_temp_w_change = mean(temp_w_change))
-  
-
-
 temp_plot <- ggplot(data = water_temp) +
   geom_line(aes(x = date, 
                 y = temp_a, 
@@ -457,6 +457,19 @@ temp_plot_2 <- ggplot(data = water_temp) +
   guides(color=guide_legend(override.aes=list(fill=NA)))
   
 temp_plot_2
-
 ```
 
+##### Concluding Remarks: 
+
+- Snow Melt Submodel: As we used real snowpack data, specifically snow water equivalent in the Upper San Juan, our melt factor was the only driver of our melt calculation. This is an over simplification which notably did not include a time lag or other components that would govern that system, and if we had, there would be other contributing factors. The melt calculated here assumes the snow water equivalent value was homogeneous across the entire watershed, which is most likely not true. 
+
+- Reservoir Submodel: Our reservoir submodel does not account to inflows from rainfall, and assumes that all storage contributions are from snow melt. This model also does not account for a time lag between when melt occurs and when water reaches the resevoir. We performed sensitivity to understand how K and evaporation affect outflows from the reservoir. Not surprisingly, K, which is the discharge rate, has a much greater affect on outflows than evaporation.  
+
+- Streamflow Temperature Submodel: This model uses a linear relationship to predict a change in water temperature based on flow and ambient temperature. Because our flow calculations only capture snowpack however, we are likely simulating more days of zero flow than there actually would be. We also have coefficient for a change in water temperature that ranges from 0-1, although the literature suggests that the range is more likely 0.6-0.8. 
+
+
+As with all models, this represents a simplified view of the actual environmental system, but may be useful in determining trends that could inform water management in the Upper San Juan River Watershed. 
+
+ESM 232 | Spring 2020
+<br>
+Bleifuss | Gibbons | Madden 
