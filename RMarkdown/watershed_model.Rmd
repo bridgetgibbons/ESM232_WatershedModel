@@ -359,6 +359,13 @@ water_temp <- as.data.frame(water_temp(ambient = ambient, water = water, bathtub
 **14.** Graph results.
 ```{r}
 temp_plot <- ggplot(data = water_temp) +
+  geom_col(aes(x = date, 
+                y = flow/10000, 
+                group = 1, 
+                color = "flow"), 
+            fill = "lightblue",
+           alpha = 0.5,
+            size = 0.5) +
   geom_line(aes(x = date, 
                 y = temp_a, 
                 group = 1, 
@@ -368,13 +375,6 @@ temp_plot <- ggplot(data = water_temp) +
                 group = 1, 
                 color = "temp_w_change")
              ) +
-  geom_col(aes(x = date, 
-                y = flow/10000, 
-                group = 1, 
-                color = "flow"), 
-            fill = "lightblue",
-           alpha = 0.5,
-            size = 0.5) +
   theme_classic() +
   ggtitle("Resevoir Storage, Inflow and Outlfow in 2015") +
   xlab("Date") +
@@ -394,7 +394,7 @@ temp_plot <- ggplot(data = water_temp) +
                                "Water Temperature"), 
                     values = c("lightblue", 
                                "goldenrod", 
-                               "khaki3")) +
+                               "indianred")) +
    scale_y_continuous(expand = c(0,0),
                       
     name = "Water & Ambiant Temperature\n(degrees Celcius)\n",
@@ -403,12 +403,20 @@ temp_plot <- ggplot(data = water_temp) +
     
   ) +
   scale_x_date(expand = c(0,0))+
-  guides(color=guide_legend(override.aes=list(fill=NA)))
+  guides(color=guide_legend(override.aes=list(fill=NA)))+
+  labs(caption = str_wrap("Note: Water temperature only calculated for days with flow > 0."))
   
 temp_plot
 
 
 temp_plot_2 <- ggplot(data = water_temp) +
+   geom_col(aes(x = date, 
+                y = flow/10000, 
+                group = 1, 
+                color = "flow"),
+           fill = "lightblue",
+           alpha = 0.5,
+            size = 0.5) +
   geom_line(aes(x = date, 
                 y = temp_a, 
                 group = 1, 
@@ -418,13 +426,6 @@ temp_plot_2 <- ggplot(data = water_temp) +
                 group = 1, 
                 color = "temp_w_change")
              ) +
-  geom_col(aes(x = date, 
-                y = flow/10000, 
-                group = 1, 
-                color = "flow"),
-           fill = "lightblue",
-           alpha = 0.5,
-            size = 0.5) +
   theme_classic() +
   ggtitle("Resevoir Storage, Inflow and Outlfow\nMarch - June 2015") +
   xlab("Date") +
@@ -444,7 +445,7 @@ temp_plot_2 <- ggplot(data = water_temp) +
                                "Water Temperature"), 
                     values = c("lightblue", 
                                "goldenrod", 
-                               "khaki3")) +
+                               "indianred")) +
    scale_y_continuous(expand = c(0,0),
                       
     name = "Water & Ambiant Temperature\n(degrees Celcius)\n",
@@ -454,7 +455,8 @@ temp_plot_2 <- ggplot(data = water_temp) +
   ) +
   scale_x_date(expand = c(0,0),
                limits = as.Date(c("2015-03-01","2015-06-30")))+
-  guides(color=guide_legend(override.aes=list(fill=NA)))
+  guides(color=guide_legend(override.aes=list(fill=NA)))+
+  labs(caption = str_wrap("Note: Water temperature only calculated for days with flow > 0."))
   
 temp_plot_2
 ```
