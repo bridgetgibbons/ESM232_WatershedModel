@@ -34,14 +34,13 @@ outflow = function(input_df, storage_initial = 70555, k = 0.01, evap = 22.66, ou
                            flow_out = k*storage_initial,
                            storage_new = storage_initial,
                            capacity = 129700,
-                           min_capacity = 40000,
                            storage_final = NA,
                            flow_out_final = NA) 
   
-# could take out the for loop and turn this into ode
+  # could take out the for loop and turn this into ode
   
-# if storage > capacity, add difference to flow out
- 
+  # if storage > capacity, add difference to flow out
+  
   for (i in 2: nrow(bathtub_df)) {
     
     bathtub_df$storage_new[i] = bathtub_df$storage_new[i-1] - evap + bathtub_df$flow_in[i-1] - bathtub_df$flow_out[i-1]
@@ -54,12 +53,6 @@ outflow = function(input_df, storage_initial = 70555, k = 0.01, evap = 22.66, ou
       bathtub_df$storage_final[i] = bathtub_df$capacity[i]
       bathtub_df$flow_out_final[i] = bathtub_df$flow_in[i]
     }
-
-    else if(bathtub_df$storage_new[i] < bathtub_df$min_capacity[i]){
-      bathtub_df$storage_final[i] = bathtub_df$min_capacity[i]
-      bathtub_df$flow_out_final[i] = 0
-    }
-    
     else{
       bathtub_df$storage_final[i] = bathtub_df$storage_new[i]
       bathtub_df$flow_out_final[i] = bathtub_df$flow_out[i]
